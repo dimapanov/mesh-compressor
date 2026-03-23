@@ -83,7 +83,7 @@ Compression runs on the **phone/web app**, not on ESP32. The radio just moves by
 This is the right architecture for initial deployment:
 - Client apps (Android, iOS, Web) have plenty of RAM — just works
 - No firmware changes needed — fast adoption path
-- The universal model (3.5 MB) can also run on ESP32 via flash mmap (see below), but client-side is simpler to ship first
+- The universal model (3.0 MB) can also run on ESP32 via flash mmap (see below), but client-side is simpler to ship first
 
 ### ESP32 flash: it might actually work
 
@@ -93,14 +93,14 @@ An [autoresearch sweep](autoresearch/search_results.tsv) across 72 order×thresh
 |-------|-----------|----------|-------------|----------|--------|
 | order=11, thr=5 (RU+EN) | 2 | 3.225 | 13.5 MB | 518K | ❌ |
 | order=9, thr=50 (RU+EN) | 2 | 3.216 | 2.8 MB | 63K | ✅ |
-| **order=9, thr=100 (universal)** | **10** | **3.25** | **3.5 MB** | **115K** | **✅** |
-| order=9, thr=200 (universal) | 10 | 3.25 | 2.5 MB | 88K | ✅ |
+| **order=9, prog-A (universal)** | **10** | **3.11** | **3.0 MB** | **87K** | **✅** |
+| order=9, thr=200 (universal) | 10 | 3.21 | 2.5 MB | 88K | ✅ |
 
 **How it fits on ESP32 boards:**
 
 The primary approach is **flash mmap** (`esp_partition_mmap`) — the model stays in flash and is read directly as a byte array. Only ~1-2 KB RAM for the decoder state, no PSRAM required.
 
-However, the 3.5 MB model doesn't fit in the default partition layout. Boards with **8 MB flash** (Heltec V3, T-Beam S3) need a custom partition table. Boards with **16 MB flash** (T-Deck, T-Pager, Station G2) have room to spare:
+However, the 3.0 MB model doesn't fit in the default partition layout. Boards with **8 MB flash** (Heltec V3, T-Beam S3) need a custom partition table. Boards with **16 MB flash** (T-Deck, T-Pager, Station G2) have room to spare:
 
 ```
 # Custom 8MB partition table with model storage
@@ -109,7 +109,7 @@ nvs,      data, nvs,     0x9000,   0x5000,
 otadata,  data, ota,     0xe000,   0x2000,
 app0,     app,  ota_0,   0x10000,  0x280000,          # 2.5 MB (firmware ~1.3-2 MB)
 flashApp, app,  ota_1,   0x290000, 0x0A0000,          # 640 KB (OTA)
-model,    data, 0x80,    0x330000, 0x380000,          # 3.5 MB (compression model)
+model,    data, 0x80,    0x330000, 0x310000,          # 3.0 MB (compression model)
 spiffs,   data, spiffs,  0x6B0000, 0x150000,          # 1.3 MB (LittleFS)
 ```
 
@@ -124,7 +124,7 @@ Boards with **PSRAM** (T-Beam S3 with ESP32-S3R8) can also load the model into P
 
 > **Note:** Heltec V3 uses ESP32-S3**FN**8 — **no PSRAM** (the "N" = No PSRAM). Flash mmap is the only option for this board.
 
-| Board | SoC | Flash | PSRAM | Model (3.5 MB) fits? |
+| Board | SoC | Flash | PSRAM | Model (3.0 MB) fits? |
 |-------|-----|-------|-------|---------------------|
 | **T-Deck / T-Deck Plus** | ESP32-S3FN16R8 | **16 MB** | **8 MB** | ✅ plenty of room |
 | **T-Lora Pager** | ESP32-S3FN16R8 | **16 MB** | **8 MB** | ✅ plenty of room |
@@ -138,7 +138,7 @@ Boards with **PSRAM** (T-Beam S3 with ESP32-S3R8) can also load the model into P
 | Heltec Mesh Node T114 | nRF52840 | 1 MB | ❌ | ❌ too small |
 | Android / iOS / Web | — | — | — | ✅ runs in app, ideal |
 
-Devices with keyboards (T-Deck, T-Pager) are the **primary targets** — that's where people type text. They have 16 MB flash, so the 3.5 MB model fits without any partition table changes. nRF52840 boards (T-Echo, Mesh Node T114) are mostly relay nodes with no keyboard — they just forward compressed bytes without needing the model.
+Devices with keyboards (T-Deck, T-Pager) are the **primary targets** — that's where people type text. They have 16 MB flash, so the 3.0 MB model fits without any partition table changes. nRF52840 boards (T-Echo, Mesh Node T114) are mostly relay nodes with no keyboard — they just forward compressed bytes without needing the model.
 
 Not tested on real hardware yet — this is a proof of concept.
 
@@ -177,7 +177,7 @@ Character-level n-gram model (order 9) with cubic interpolation smoothing:
 weight(n) = (n + 1)^3 * log(1 + count)
 ```
 
-1,494 unique characters, ~115K context entries after pruning, trained on 452,532 messages across 10 languages (RU, EN, ES, DE, FR, PT, ZH, AR, JA, KO). The model is the "dictionary" — but unlike zlib's dictionary, it captures *language structure*, not byte patterns.
+1,494 unique characters, ~87K context entries after pruning, trained on 452,532 messages across 10 languages (RU, EN, ES, DE, FR, PT, ZH, AR, JA, KO). The model is the "dictionary" — but unlike zlib's dictionary, it captures *language structure*, not byte patterns.
 
 ### Arithmetic coding
 
@@ -187,8 +187,8 @@ weight(n) = (n + 1)^3 * log(1 + count)
 
 | Format | Size | Use case |
 |--------|------|----------|
-| **JSON universal 10-lang** | **5.3 MB (1.7 MB gzipped)** | **Web UI, client apps** |
-| C++ binary (estimated, thr=100) | 3.5 MB | ESP32 flash via mmap |
+| **JSON universal 10-lang** | **4.2 MB (1.4 MB gzipped)** | **Web UI, client apps** |
+| C++ binary (estimated, prog-A) | 3.0 MB | ESP32 flash via mmap |
 | C++ binary (estimated, thr=200) | 2.5 MB | ESP32 with tight flash |
 
 The universal model covers 10 languages with 72-84% compression. More aggressive pruning (thr=200) trades ~1% compression for a smaller binary.
@@ -199,7 +199,7 @@ The universal model covers 10 languages with 72-84% compression. More aggressive
 
 **[Open the online compressor](https://dimapanov.github.io/mesh-compressor/)**
 
-The model loads once (~5.3 MB / ~1.7 MB gzipped), then everything runs client-side in JavaScript.
+The model loads once (~4.2 MB / ~1.4 MB gzipped), then everything runs client-side in JavaScript.
 
 ### Python server (optional)
 
@@ -250,7 +250,7 @@ We tested two strategies: **one universal model** (all languages) vs **per-langu
 | German | 76% | **74%** | -2% |
 | Chinese | 77% | **74%** | -3% |
 
-Per-language models win by 1-3%, but the universal model covers all 10 languages in a single 3.5 MB binary (5.3 MB JSON). 100% lossless roundtrip on all languages.
+Per-language models win by 1-3%, but the universal model covers all 10 languages in a single 3.0 MB binary (4.2 MB JSON). 100% lossless roundtrip on all languages.
 
 ### Conclusion: ship one universal model
 

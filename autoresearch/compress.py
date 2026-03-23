@@ -119,7 +119,9 @@ class NGramModel:
             ctx = context[-n:] if n > 0 else ""
             t = self.totals[n].get(ctx, 0)
             if t > 0:
-                w = (n + 1) ** 3 * math.log1p(t)  # cubic * log(1+count)
+                # Confidence: penalize low-count contexts
+                confidence = min(t / (n + 3.0), 1.0)
+                w = (n + 1) ** 3 * math.log1p(t) * confidence
                 active.append((n, ctx, t, w))
                 total_w += w
 
