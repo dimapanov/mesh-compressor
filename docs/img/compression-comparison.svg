@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="580" viewBox="0 0 800 580">
+  <defs>
+    <style>text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2328; }</style>
+  </defs>
+  <rect width="800" height="580" fill="#ffffff" rx="8"/>
+
+  <text x="400" y="32" text-anchor="middle" font-size="15" font-weight="600">Compressed size (bytes) — lower is better</text>
+
+  <!-- Legend -->
+  <rect x="155" y="48" width="12" height="12" rx="2" fill="#9ca3af"/><text x="173" y="59" font-size="11" fill="#6b7280">UTF-8</text>
+  <rect x="235" y="48" width="12" height="12" rx="2" fill="#e74c3c"/><text x="253" y="59" font-size="11" fill="#6b7280">zlib</text>
+  <rect x="300" y="48" width="12" height="12" rx="2" fill="#f59e0b"/><text x="318" y="59" font-size="11" fill="#6b7280">Unishox2</text>
+  <rect x="400" y="48" width="12" height="12" rx="2" fill="#16a34a"/><text x="418" y="59" font-size="11" fill="#6b7280">n-gram + AC</text>
+  <text x="530" y="59" font-size="11" fill="#2563eb">(this project)</text>
+
+  <!-- 1: Привет, как дела? -->
+  <text x="192" y="94" text-anchor="end" font-size="12" fill="#6b7280">Привет, как дела?</text>
+  <rect x="200" y="80" width="50" height="14" rx="3" fill="#9ca3af"/><text x="255" y="92" font-size="10" fill="#6b7280">30</text>
+  <rect x="200" y="96" width="68" height="14" rx="3" fill="#e74c3c"/><text x="273" y="108" font-size="10" fill="#6b7280">41</text>
+  <rect x="200" y="112" width="33" height="14" rx="3" fill="#f59e0b"/><text x="238" y="124" font-size="10" fill="#6b7280">20</text>
+  <rect x="200" y="128" width="12" height="14" rx="3" fill="#16a34a"/><text x="217" y="140" font-size="10" fill="#16a34a" font-weight="600">7</text>
+
+  <!-- 2: Check channel 5 -->
+  <text x="192" y="170" text-anchor="end" font-size="12" fill="#6b7280">Check channel 5</text>
+  <rect x="200" y="156" width="25" height="14" rx="3" fill="#9ca3af"/><text x="230" y="168" font-size="10" fill="#6b7280">15</text>
+  <rect x="200" y="172" width="38" height="14" rx="3" fill="#e74c3c"/><text x="243" y="184" font-size="10" fill="#6b7280">23</text>
+  <rect x="200" y="188" width="18" height="14" rx="3" fill="#f59e0b"/><text x="223" y="200" font-size="10" fill="#6b7280">11</text>
+  <rect x="200" y="204" width="12" height="14" rx="3" fill="#16a34a"/><text x="217" y="216" font-size="10" fill="#16a34a" font-weight="600">7</text>
+
+  <!-- 3: Battery 40%, power save -->
+  <text x="192" y="246" text-anchor="end" font-size="12" fill="#6b7280">Battery 40%, power save</text>
+  <rect x="200" y="232" width="65" height="14" rx="3" fill="#9ca3af"/><text x="270" y="244" font-size="10" fill="#6b7280">39</text>
+  <rect x="200" y="248" width="78" height="14" rx="3" fill="#e74c3c"/><text x="283" y="260" font-size="10" fill="#6b7280">47</text>
+  <rect x="200" y="264" width="43" height="14" rx="3" fill="#f59e0b"/><text x="248" y="276" font-size="10" fill="#6b7280">26</text>
+  <rect x="200" y="280" width="20" height="14" rx="3" fill="#16a34a"/><text x="225" y="292" font-size="10" fill="#16a34a" font-weight="600">12</text>
+
+  <!-- 4: Проверка связи -->
+  <text x="192" y="322" text-anchor="end" font-size="12" fill="#6b7280">Проверка связи</text>
+  <rect x="200" y="308" width="45" height="14" rx="3" fill="#9ca3af"/><text x="250" y="320" font-size="10" fill="#6b7280">27</text>
+  <rect x="200" y="324" width="60" height="14" rx="3" fill="#e74c3c"/><text x="265" y="336" font-size="10" fill="#6b7280">36</text>
+  <rect x="200" y="340" width="27" height="14" rx="3" fill="#f59e0b"/><text x="232" y="352" font-size="10" fill="#6b7280">16</text>
+  <rect x="200" y="356" width="8" height="14" rx="3" fill="#16a34a"/><text x="214" y="368" font-size="10" fill="#16a34a" font-weight="600">5</text>
+
+  <!-- 5: Long English (104 chars) -->
+  <text x="192" y="398" text-anchor="end" font-size="12" fill="#6b7280">Long English (104 chars)</text>
+  <rect x="200" y="384" width="173" height="14" rx="3" fill="#9ca3af"/><text x="378" y="396" font-size="10" fill="#6b7280">104</text>
+  <rect x="200" y="400" width="159" height="14" rx="3" fill="#e74c3c"/><text x="364" y="412" font-size="10" fill="#6b7280">96</text>
+  <rect x="200" y="416" width="108" height="14" rx="3" fill="#f59e0b"/><text x="313" y="428" font-size="10" fill="#6b7280">65</text>
+  <rect x="200" y="432" width="86" height="14" rx="3" fill="#16a34a"/><text x="291" y="444" font-size="10" fill="#16a34a" font-weight="600">52</text>
+
+  <!-- 6: Long Russian (229 bytes) -->
+  <text x="192" y="474" text-anchor="end" font-size="12" fill="#6b7280">Long Russian (229 bytes)</text>
+  <rect x="200" y="460" width="380" height="14" rx="3" fill="#9ca3af"/><text x="585" y="472" font-size="10" fill="#6b7280">229</text>
+  <rect x="200" y="476" width="259" height="14" rx="3" fill="#e74c3c"/><text x="464" y="488" font-size="10" fill="#6b7280">156</text>
+  <rect x="200" y="492" width="199" height="14" rx="3" fill="#f59e0b"/><text x="404" y="504" font-size="10" fill="#6b7280">120</text>
+  <rect x="200" y="508" width="50" height="14" rx="3" fill="#16a34a"/><text x="255" y="520" font-size="10" fill="#16a34a" font-weight="600">30</text>
+
+  <text x="400" y="555" text-anchor="middle" font-size="12" fill="#16a34a">zlib expands short messages • Unishox2 saves ~30% • n-gram+AC saves 50-87%</text>
+</svg>

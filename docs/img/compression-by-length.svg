@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <defs>
+    <style>text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2328; }</style>
+  </defs>
+  <rect width="800" height="450" fill="#ffffff" rx="8"/>
+
+  <text x="400" y="28" text-anchor="middle" font-size="15" font-weight="600">Compression ratio vs message length</text>
+
+  <!-- Legend -->
+  <circle cx="200" cy="54" r="5" fill="#16a34a"/><text x="210" y="58" font-size="11" fill="#6b7280">n-gram + AC</text>
+  <polygon points="315,49 320,59 310,59" fill="#f59e0b"/><text x="325" y="58" font-size="11" fill="#6b7280">Unishox2</text>
+  <rect x="415" y="49" width="10" height="10" fill="#e74c3c"/><text x="430" y="58" font-size="11" fill="#6b7280">zlib</text>
+
+  <!-- Grid lines -->
+  <line x1="70" y1="75" x2="770" y2="75" stroke="#e5e7eb" stroke-width="0.5"/>
+  <line x1="70" y1="120" x2="770" y2="120" stroke="#e5e7eb" stroke-width="0.5"/>
+  <line x1="70" y1="165" x2="770" y2="165" stroke="#e5e7eb" stroke-width="0.5"/>
+  <line x1="70" y1="210" x2="770" y2="210" stroke="#e5e7eb" stroke-width="0.5"/>
+  <line x1="70" y1="255" x2="770" y2="255" stroke="#e5e7eb" stroke-width="0.5"/>
+  <line x1="70" y1="300" x2="770" y2="300" stroke="#e5e7eb" stroke-width="0.5"/>
+  <line x1="70" y1="345" x2="770" y2="345" stroke="#e5e7eb" stroke-width="0.5"/>
+
+  <!-- Zero line -->
+  <line x1="70" y1="256" x2="770" y2="256" stroke="#9ca3af" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <!-- Expansion zone shading -->
+  <rect x="70" y="256" width="700" height="144" fill="#e74c3c" opacity="0.05"/>
+  <text x="76" y="270" font-size="10" fill="#e74c3c" opacity="0.7">EXPANSION</text>
+  <text x="76" y="248" font-size="10" fill="#16a34a" opacity="0.7">COMPRESSION</text>
+
+  <!-- Y axis labels -->
+  <text x="62" y="79" text-anchor="end" font-size="10" fill="#6b7280">100%</text>
+  <text x="62" y="120" text-anchor="end" font-size="10" fill="#6b7280">75%</text>
+  <text x="62" y="165" text-anchor="end" font-size="10" fill="#6b7280">50%</text>
+  <text x="62" y="210" text-anchor="end" font-size="10" fill="#6b7280">25%</text>
+  <text x="62" y="260" text-anchor="end" font-size="10" fill="#6b7280">0%</text>
+  <text x="62" y="300" text-anchor="end" font-size="10" fill="#6b7280">-25%</text>
+  <text x="62" y="345" text-anchor="end" font-size="10" fill="#6b7280">-50%</text>
+  <text x="62" y="400" text-anchor="end" font-size="10" fill="#6b7280">-80%</text>
+
+  <!-- X axis labels -->
+  <text x="70" y="420" text-anchor="middle" font-size="10" fill="#6b7280">0</text>
+  <text x="216" y="420" text-anchor="middle" font-size="10" fill="#6b7280">50</text>
+  <text x="362" y="420" text-anchor="middle" font-size="10" fill="#6b7280">100</text>
+  <text x="508" y="420" text-anchor="middle" font-size="10" fill="#6b7280">150</text>
+  <text x="654" y="420" text-anchor="middle" font-size="10" fill="#6b7280">200</text>
+  <text x="770" y="420" text-anchor="middle" font-size="10" fill="#6b7280">240</text>
+
+  <text x="420" y="442" text-anchor="middle" font-size="12" fill="#6b7280">Message size (UTF-8 bytes)</text>
+
+  <!-- Axes -->
+  <line x1="70" y1="75" x2="70" y2="400" stroke="#d1d5db" stroke-width="1"/>
+  <line x1="70" y1="400" x2="770" y2="400" stroke="#d1d5db" stroke-width="1"/>
+
+  <!-- n-gram+AC line (green) -->
+  <polyline points="105,180 114,171 122,165 125,171 137,147 140,151 149,123 158,137 160,120 169,138 184,147 204,171 207,147 216,152 303,137 315,119 336,148 359,120 373,165 496,137 726,139 738,119" fill="none" stroke="#16a34a" stroke-width="2" opacity="0.5"/>
+  <circle cx="105" cy="180" r="4" fill="#16a34a"/>
+  <circle cx="114" cy="171" r="4" fill="#16a34a"/>
+  <circle cx="122" cy="165" r="4" fill="#16a34a"/>
+  <circle cx="125" cy="171" r="4" fill="#16a34a"/>
+  <circle cx="137" cy="147" r="4" fill="#16a34a"/>
+  <circle cx="140" cy="151" r="4" fill="#16a34a"/>
+  <circle cx="149" cy="123" r="4" fill="#16a34a"/>
+  <circle cx="158" cy="137" r="4" fill="#16a34a"/>
+  <circle cx="160" cy="120" r="4" fill="#16a34a"/>
+  <circle cx="169" cy="138" r="4" fill="#16a34a"/>
+  <circle cx="184" cy="147" r="4" fill="#16a34a"/>
+  <circle cx="204" cy="171" r="4" fill="#16a34a"/>
+  <circle cx="207" cy="147" r="4" fill="#16a34a"/>
+  <circle cx="216" cy="152" r="4" fill="#16a34a"/>
+  <circle cx="303" cy="137" r="4" fill="#16a34a"/>
+  <circle cx="315" cy="119" r="4" fill="#16a34a"/>
+  <circle cx="336" cy="148" r="4" fill="#16a34a"/>
+  <circle cx="359" cy="120" r="4" fill="#16a34a"/>
+  <circle cx="373" cy="165" r="4" fill="#16a34a"/>
+  <circle cx="496" cy="137" r="4" fill="#16a34a"/>
+  <circle cx="726" cy="139" r="4" fill="#16a34a"/>
+  <circle cx="738" cy="119" r="4" fill="#16a34a"/>
+
+  <!-- Unishox2 line (amber) -->
+  <polyline points="105,196 114,206 122,206 125,215 137,192 140,196 149,183 158,196 160,192 169,198 184,196 204,206 207,198 216,191 303,183 315,178 336,188 359,174 373,187 496,178 726,166 738,169" fill="none" stroke="#f59e0b" stroke-width="2" opacity="0.5"/>
+  <polygon points="105,192 109,200 101,200" fill="#f59e0b"/>
+  <polygon points="114,202 118,210 110,210" fill="#f59e0b"/>
+  <polygon points="122,202 126,210 118,210" fill="#f59e0b"/>
+  <polygon points="125,211 129,219 121,219" fill="#f59e0b"/>
+  <polygon points="137,188 141,196 133,196" fill="#f59e0b"/>
+  <polygon points="140,192 144,200 136,200" fill="#f59e0b"/>
+  <polygon points="149,179 153,187 145,187" fill="#f59e0b"/>
+  <polygon points="158,192 162,200 154,200" fill="#f59e0b"/>
+  <polygon points="160,188 164,196 156,196" fill="#f59e0b"/>
+  <polygon points="169,194 173,202 165,202" fill="#f59e0b"/>
+  <polygon points="184,192 188,200 180,200" fill="#f59e0b"/>
+  <polygon points="204,202 208,210 200,210" fill="#f59e0b"/>
+  <polygon points="207,194 211,202 203,202" fill="#f59e0b"/>
+  <polygon points="216,187 220,195 212,195" fill="#f59e0b"/>
+  <polygon points="303,179 307,187 299,187" fill="#f59e0b"/>
+  <polygon points="315,174 319,182 311,182" fill="#f59e0b"/>
+  <polygon points="336,184 340,192 332,192" fill="#f59e0b"/>
+  <polygon points="359,170 363,178 355,178" fill="#f59e0b"/>
+  <polygon points="373,183 377,191 369,191" fill="#f59e0b"/>
+  <polygon points="496,174 500,182 492,182" fill="#f59e0b"/>
+  <polygon points="726,162 730,170 722,170" fill="#f59e0b"/>
+  <polygon points="738,165 742,173 734,173" fill="#f59e0b"/>
+
+  <!-- zlib line (red) -->
+  <polyline points="105,391 114,352 122,336 125,332 137,319 140,316 149,316 158,323 160,319 169,300 184,293 204,287 207,287 216,285 303,254 315,249 336,242 359,228 373,242 496,227 726,202 738,198" fill="none" stroke="#e74c3c" stroke-width="2" opacity="0.5"/>
+  <rect x="102" y="388" width="7" height="7" fill="#e74c3c"/>
+  <rect x="111" y="349" width="7" height="7" fill="#e74c3c"/>
+  <rect x="119" y="333" width="7" height="7" fill="#e74c3c"/>
+  <rect x="122" y="329" width="7" height="7" fill="#e74c3c"/>
+  <rect x="134" y="316" width="7" height="7" fill="#e74c3c"/>
+  <rect x="137" y="313" width="7" height="7" fill="#e74c3c"/>
+  <rect x="146" y="313" width="7" height="7" fill="#e74c3c"/>
+  <rect x="155" y="320" width="7" height="7" fill="#e74c3c"/>
+  <rect x="157" y="316" width="7" height="7" fill="#e74c3c"/>
+  <rect x="166" y="297" width="7" height="7" fill="#e74c3c"/>
+  <rect x="181" y="290" width="7" height="7" fill="#e74c3c"/>
+  <rect x="201" y="284" width="7" height="7" fill="#e74c3c"/>
+  <rect x="204" y="284" width="7" height="7" fill="#e74c3c"/>
+  <rect x="213" y="282" width="7" height="7" fill="#e74c3c"/>
+  <rect x="300" y="251" width="7" height="7" fill="#e74c3c"/>
+  <rect x="312" y="246" width="7" height="7" fill="#e74c3c"/>
+  <rect x="333" y="239" width="7" height="7" fill="#e74c3c"/>
+  <rect x="356" y="225" width="7" height="7" fill="#e74c3c"/>
+  <rect x="370" y="239" width="7" height="7" fill="#e74c3c"/>
+  <rect x="493" y="224" width="7" height="7" fill="#e74c3c"/>
+  <rect x="723" y="199" width="7" height="7" fill="#e74c3c"/>
+  <rect x="735" y="195" width="7" height="7" fill="#e74c3c"/>
+</svg>

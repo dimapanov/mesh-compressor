@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="850" height="280" viewBox="0 0 850 280">
+  <defs>
+    <style>text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2328; }</style>
+  </defs>
+  <rect width="850" height="280" fill="#ffffff" rx="8"/>
+
+  <text x="425" y="28" text-anchor="middle" font-size="14" font-weight="600">Architecture: compression runs on client, not on ESP32</text>
+
+  <!-- Sender phone -->
+  <rect x="20" y="55" width="160" height="90" rx="8" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <text x="100" y="78" text-anchor="middle" font-size="13" font-weight="600" fill="#2563eb">Phone / Browser</text>
+  <text x="100" y="98" text-anchor="middle" font-size="11" fill="#6b7280">Text → compress() → bytes</text>
+  <text x="100" y="116" text-anchor="middle" font-size="10" fill="#2563eb">Model: 12 MB</text>
+  <text x="100" y="134" text-anchor="middle" font-size="10" fill="#6b7280">~2 ms encode</text>
+  <text x="100" y="160" text-anchor="middle" font-size="10" fill="#2563eb">SENDER</text>
+
+  <!-- Arrow 1 -->
+  <line x1="180" y1="100" x2="240" y2="100" stroke="#d1d5db" stroke-width="1.5"/>
+  <polygon points="240,96 250,100 240,104" fill="#d1d5db"/>
+  <text x="215" y="90" text-anchor="middle" font-size="9" fill="#9ca3af">BLE/WiFi</text>
+
+  <!-- ESP32 left -->
+  <rect x="250" y="65" width="120" height="70" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="310" y="88" text-anchor="middle" font-size="12" font-weight="500" fill="#6b7280">ESP32 LoRa</text>
+  <text x="310" y="106" text-anchor="middle" font-size="10" fill="#9ca3af">just relays bytes</text>
+  <text x="310" y="124" text-anchor="middle" font-size="9" fill="#9ca3af">no model needed</text>
+  <text x="310" y="152" text-anchor="middle" font-size="9" fill="#9ca3af">RAM: 520 KB</text>
+
+  <!-- Arrow 2 (radio) -->
+  <line x1="370" y1="100" x2="480" y2="100" stroke="#d1d5db" stroke-width="1.5"/>
+  <polygon points="480,96 490,100 480,104" fill="#d1d5db"/>
+  <text x="425" y="88" text-anchor="middle" font-size="10" fill="#ea580c">LoRa Radio</text>
+  <text x="425" y="120" text-anchor="middle" font-size="9" fill="#9ca3af">233 bytes max</text>
+  <path d="M 418 72 Q 425 62 432 72" fill="none" stroke="#ea580c" stroke-width="1" opacity="0.5"/>
+  <path d="M 414 68 Q 425 54 436 68" fill="none" stroke="#ea580c" stroke-width="1" opacity="0.3"/>
+
+  <!-- ESP32 right -->
+  <rect x="490" y="65" width="120" height="70" rx="8" fill="#f9fafb" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="550" y="88" text-anchor="middle" font-size="12" font-weight="500" fill="#6b7280">ESP32 LoRa</text>
+  <text x="550" y="106" text-anchor="middle" font-size="10" fill="#9ca3af">just relays bytes</text>
+  <text x="550" y="124" text-anchor="middle" font-size="9" fill="#9ca3af">no model needed</text>
+  <text x="550" y="152" text-anchor="middle" font-size="9" fill="#9ca3af">RAM: 520 KB</text>
+
+  <!-- Arrow 3 -->
+  <line x1="610" y1="100" x2="670" y2="100" stroke="#d1d5db" stroke-width="1.5"/>
+  <polygon points="670,96 680,100 670,104" fill="#d1d5db"/>
+  <text x="645" y="90" text-anchor="middle" font-size="9" fill="#9ca3af">BLE/WiFi</text>
+
+  <!-- Receiver phone -->
+  <rect x="680" y="55" width="150" height="90" rx="8" fill="none" stroke="#16a34a" stroke-width="2"/>
+  <text x="755" y="78" text-anchor="middle" font-size="13" font-weight="600" fill="#16a34a">Phone / Browser</text>
+  <text x="755" y="98" text-anchor="middle" font-size="11" fill="#6b7280">bytes → decompress() → Text</text>
+  <text x="755" y="116" text-anchor="middle" font-size="10" fill="#2563eb">Model: 12 MB</text>
+  <text x="755" y="134" text-anchor="middle" font-size="10" fill="#6b7280">~0.2 ms decode</text>
+  <text x="755" y="160" text-anchor="middle" font-size="10" fill="#16a34a">RECEIVER</text>
+
+  <!-- Bottom note -->
+  <rect x="225" y="190" width="400" height="36" rx="6" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="425" y="213" text-anchor="middle" font-size="12" fill="#6b7280">ESP32 doesn't need the model — it just forwards packets</text>
+
+  <text x="425" y="255" text-anchor="middle" font-size="11" fill="#9ca3af">Both sender and receiver need the app • mesh relays are unaffected</text>
+</svg>

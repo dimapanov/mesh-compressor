@@ -1,0 +1,1 @@
+# autoresearch — autonomous compression research

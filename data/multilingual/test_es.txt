@@ -1,0 +1,500 @@
+¡Gracias por la red! ⭐
+Temperatura actual: 5.0°C
+Presión: 991 hPa, humedad 100%
+En la cima del Peña Mayor 📍
+Refugio de montaña, GPS ok 🌐
+TX power ajustado a 6 dBm
+Cerca del parque central ⚠️
+Ubicación: 43.102°N, 3.082°W
+Temperatura 13.6°C, viento 38 km/h del SW
+Punto 2 establecido, cubriendo zona
+Día bonito para mesh 🏔️
+Confirmo que recibo fuerte
+Buen finde para todos
+Noche clara, 37.4°C
+Test de alcance, ¿me leen?
+¡Hey! ¿Hay alguien activo?
+Clima: ventoso, 13.3°C 💨
+Cambié al canal 17
+¡Aquí sigo! Signal 3/5
+Rally en Córdoba a las 4pm
+Punto 7 establecido, cubriendo zona
+Día tranquilo en la zona
+A ver si alguien me lee…
+Ayuda requerida en coordenadas 36.6459,9.2624
+¡Calor! 31.9°C y subiendo 🔥
+Reunión en 15 minutos en monte
+Batería baja: 98% ⚠️
+¡Nos vemos en el meetup! 🏕️
+Hace 29.7°C, sensación 32.0°C
+¡Hola a todos!
+¿Cómo andan todos?
+Nodo count: 116
+2/5 signal, todo estable
+Canales: 7, 10 activos
+¡Nos vemos en el meetup! 🏕️
+¿Hay alguien en Málaga? ¡Emergencia!
+Canal 13 — primary ahora
+Noche clara, 10.4°C
+Equipo 2, muévanse al punto 12
+Mensaje de emergencia — marcar 8
+5 saltos hasta la base
+¿Cómo andan todos?
+¡Buena onda! Todo en orden
+Hace 38.0°C, sensación 37.0°C
+Equipo 2, muévanse al punto 8
+Batería OK (80%), signal 4
+Yo por aquí, todo tranquilo
+Signal débil aquí, solo 1 barra 📶
+Batería al 10% ✅
+Batería cargando: 14%
+A ver si alguien me lee…
+¡Hola a todos!
+Check-in general — ¿quién recibe?
+Todos den su reporte por favor
+Buen día para hoy
+Batería al 91%
+¡Buena malla hoy!
+Buen día para hoy
+Firmware v2.7.3 — todo ok ✅
+Signal media, 2 saltos
+Refugio de montaña, GPS ok
+Temperatura actual: -4.8°C
+Signal 2/5, batería 10%
+Me muevo hacia el norte
+Me muevo hacia el norte
+TX power ajustado a 17 dBm
+Beacon de emergencia activado 🚨
+Nublado, 7.4°C, lluvia al 40%
+Check-in general — ¿quién recibe?
+Mensaje de emergencia — marcar 84
+Buen finde para todos
+Día tranquilo en la zona
+¡Hola a todos!
+Signal media, 3 saltos ✅
+Test de alcance, ¿me leen?
+42.945, 4.200 — punto de encuentro
+¿Listos? A las 3pm en punto
+¡Nos vemos en el meetup! 🏕️
+Cerca del puente mayor
+Zona urbana Valencia
+Nodo Nodo-01 en línea
+38.893, 6.992 — punto de encuentro
+Temperatura 21.4°C, viento 49 km/h del SW
+Buenas, aquí Node-Alpha 5/5
+39.301, 9.964 — PUNTO DE ENCUENTRO
+Me muevo hacia el este
+Todo bien por aquí 👍 ✅
+Todos bien por monte
+Batería cargando: 45%
+Batería baja: 67% ⚠️
+Día tranquilo en la zona
+Mañana fresca, 31.5°C
+57 nodos en la red
+Cambié al canal 4
+Reforzar posición en puente mayor 👍
+Día bonito para mesh 🏔️
+Equipo 2, muévanse al punto 14
+Emergencia en zona rural
+Temperatura actual: 16.4°C
+Batería baja: 76% ⚠️
+En la cima del Peña Mayor 📍
+Equipo 2, muévanse al punto 20
+Hace 39.2°C, sensación 41.5°C
+Senderos del campo, heading norte
+Rumbo al punto 8, confirmen
+¡Bonito día hoy! 🌞
+Estoy en 36.4531 N, 6.2477 W
+En la costa, 12 km al sur
+Bat: 17%, sig: 2/5 ✅
+¡Emergencia! Necesito ayuda en punto 99 🚨
+En la cima del Pico Norte 📍
+Batería OK (70%), signal 2
+BATERÍA OK (70%), SIGNAL 5
+Buen finde para todos
+Rangetest: 18.0 km resultados
+Hace 32.6°C, sensación 32.4°C
+¡Salud desde Bilbao!
+Equipo 2, muévanse al punto 12
+¿Listos? A las 3pm en punto
+Yo por aquí, todo tranquilo
+En la cima del Pico Norte 📍
+Cerca del bosque 🚨
+REFORZAR POSICIÓN EN PUENTE MAYOR
+Batería al 23%
+A ver si alguien me lee…
+A ver si alguien me lee…
+Día bonito para mesh 🏔️
+A 5 km al norte del puente
+Señal fuerte, 3 saltos
+Todo OK por mi parte
+Test de alcance, ¿me leen?
+¿Qué tal? ¿Me reciben?
+Tormenta aproximándose ⛈️
+¡Nos vemos en el meetup! 🏕️
+Conectado directo, signal 3
+Clima: despejado, -2.5°C 💨
+¡Hey! ¿Hay alguien activo?
+¿Qué tal? ¿Me reciben?
+Canal 11 — primary ahora
+¡Saludos desde Córdoba!
+Signal media, 7 saltos
+Día tranquilo en la zona
+Equipo 2, muévanse al punto 7
+GPS: 39.8351, 3.7394
+Equipo 1 avance al norte
+Actualizando a v2.6.1 ahora
+Signal 1/5, batería 16%
+Nivel de batería: 36% 🔋
+Día tranquilo en la zona
+Grupo 9 en posición 3
+¡Buena onda! Todo en orden
+Rally en Toledo a las 18:00
+¿Hay alguien en Granada? ¡Emergencia!
+Coordenadas: 40.8154, 3.8529
+Noche clara, 33.3°C
+Día tranquilo en la zona
+Temperatura actual: 22.1°C
+Firmware v2.6.1 — todo ok ✅
+74 nodos, 1 directos
+Mañana fresca, 3.3°C
+Yo por aquí, todo tranquilo 🔋
+55 NODOS, 12 DIRECTOS
+¿Hay alguien en Barcelona? ¡Emergencia!
+A VER SI ALGUIEN ME LEE…
+BEACON ACTIVADO POR REPEATER-1
+Por la zona de Zaragoza
+Rally en Bilbao a las 19:30
+5 saltos hasta la base
+Rangetest: 16.3 km resultados
+Estoy en 41.6054 N, 7.8627 W
+Me muevo hacia el oeste
+¡Nos vemos en el meetup! 🏕️
+Todos den su reporte por favor
+Lluvia moderada, 35.2°C 🌧️ 😀
+Check-in general — ¿quién recibe?
+Senderos del pinos, heading norte
+¡Buenas tardes!
+Clima: nublado, 22.3°C 💨
+Cambié al canal 12
+¿Cómo andan todos?
+Buen día para hoy
+¡Hola a todos! ✅
+Aquí 42.6783 N
+Nodo count: 110
+Nublado, 37.9°C, lluvia al 40%
+DÍA TRANQUILO EN LA ZONA
+Cerca del refugio
+Por la zona de Valencia
+Actualizado a firmware v2.6.1
+Cerca del río
+Me muevo hacia el sur
+¡Buena malla hoy!
+1/5 signal, todo estable
+En la costa, 41 km al sur
+Rangetest: 18.0 km resultados ⚠️
+Ayuda requerida en coordenadas 36.1219,6.0666
+GPS: 40.6455, 6.7875
+Rally en Zaragoza a las 2pm
+A 5 km al norte del puente
+Recibido alto y claro
+Aquí 39.7090 N
+Rumbo al punto 20, confirmen
+Nublado, 2.1°C, lluvia al 40%
+Todos den su reporte por favor
+74 nodos, 9 directos
+Bat: 68%, sig: 5/5 ✅
+¡Bonito día hoy! 🌞
+Equipo 1 avance al norte
+Batería cargando: 47%
+Grupo 7 en posición 6
+TODOS BIEN POR MONTE
+¡Aquí sigo! Signal 4/5
+Nublado, 28.5°C, lluvia al 40%
+¡Emergencia! Necesito ayuda en punto 58 🚨
+Clima: neblina, 31.7°C 💨 🚨
+Noche clara, 9.3°C
+Todo OK por mi parte
+¿Listos? A las 3pm en punto
+Todos a cobertura, nos movemos
+¡Emergencia! Necesito ayuda en punto 71 🚨
+Nivel de batería: 47% 🔋
+Batería cargando: 58%
+En la cima del Cerro Verde 📍
+Grupo 7 en posición 6
+Nivel de batería: 36% 🔋
+5 saltos hasta la base ⚠️
+En la cima del Pico Norte 📍
+Actualizando a v2.5.14 ahora 🚨
+Tormenta aproximándose ⛈️
+Temperatura 11.8°C, viento 16 km/h del SW
+Signal media, 7 saltos
+Tormenta aproximándose ⛈️
+Confirmo que recibo fuerte
+Nublado, 19.5°C, lluvia al 40%
+Día tranquilo en la zona
+Alerta: necesito asistencia médica
+Estoy en 36.6469 N, 6.3018 W
+¿Cómo andan todos?
+Temperatura -2.9°C, viento 15 km/h del SW
+¿Listos? A las 3pm en punto
+Estoy en 38.0346 N, 5.6576 W
+Conectado directo, signal 5
+Lluvia moderada, 25.7°C 🌧️
+Señal fuerte, 3 saltos
+Día bonito para mesh 🏔️
+Actualizando a v2.6.1 ahora
+Nublado, 4.9°C, lluvia al 40%
+Canal cambiado, probando cobertura
+Signal débil aquí, solo 1 barra 📶
+Emergencia en zona rural
+Check-in general — ¿quién recibe?
+Punto 3 establecido, cubriendo zona
+Cerca del parque central
+Rangetest: 22.3 km resultados
+Buen finde para todos
+Signal 5/5, batería 83%
+Buenas, aquí Nodo-01 5/5
+46 nodos en la red
+Equipo 1 avance al norte
+Temperatura 21.3°C, viento 26 km/h del SW
+MESH ESTABLE, 95 NODOS 🌐
+¡Buenas tardes!
+Confirmo que recibo fuerte
+12 nodos en la red
+Canales: 15, 10 activos
+A ver si alguien me lee…
+Todos a cobertura, nos movemos
+Cambié al canal 4
+Reforzar posición en lago
+Todo OK por mi parte
+Todos a cobertura, nos movemos
+Batería al 48%
+En la costa, 38 km al sur
+Beacon de emergencia activado 🚨
+Actualizando a v2.5.14 ahora
+48 nodos en la red
+Mañana fresca, 8.1°C
+13.9°C, humedad 76%
+Signal 4/5, batería 49%
+¡Favor de reportar! Situación crítica
+¡Gracias por la red! ⭐
+Batería al 7%
+Lluvia moderada, -4.2°C 🌧️
+Beacon de emergencia activado 🚨
+Viento del norte a 18 km/h
+¡Calor! 26.3°C y subiendo 🔥
+Senderos del costa, heading norte
+COORDENADAS: 36.9107, 6.3995
+Canales: 10, 17 activos
+Todos a cobertura, nos movemos
+Aquí andamos, ¿y ustedes?
+Todo OK por mi parte
+Batería al 91%
+Por la zona de Bilbao
+¡Hola a todos!
+Canales: 3, 15 activos
+Zona urbana Zaragoza
+Equipo 2, muévanse al punto 8
+Todos bien por playa
+¡Saludos desde Sevilla!
+¿Alguien me recibe? ¡Emergencia!
+¡Buena malla hoy!
+Nodo Nodo-01 en línea
+-1.9°C, humedad 21%
+¡Saludos desde Bilbao!
+¡Gracias por la red! ⭐
+BAT: 95%, SIG: 5/5 ✅
+¡Buenos días! 🌞
+Test de alcance, ¿me leen?
+Confirmo que recibo fuerte
+¿Alguien va al punto de reunión? 📡
+Me muevo hacia el sur
+TEMPERATURA 28.5°C, VIENTO 0 KM/H DEL SW
+Equipo 2, muévanse al punto 13
+Conectado directo, signal 4
+Todos bien por ciudad
+Grupo 4 en posición 6
+Canales: 16, 3 activos
+¡Hola a todos!
+Equipo 1 avance al norte
+Canales: 10, 17 activos
+Batería baja: 14% ⚠️
+Zona urbana Córdoba
+Beacon de emergencia activado 🚨
+¿QUÉ TAL? ¿ME RECIBEN?
+ESTOY EN 36.4882 N, 7.4162 W
+Actualizando a v2.7.3 ahora
+Todos a cobertura, nos movemos
+Todos a cobertura, nos movemos
+SIGNAL DÉBIL AQUÍ, SOLO 1 BARRA 📶
+Hace 16.7°C, sensación 19.3°C
+Alguien para un café virtual? ☕
+TX power ajustado a 12 dBm
+¡Emergencia! Necesito ayuda en punto 13 🚨
+Beacon activado por Nodo-01
+¡Hey! ¿Hay alguien activo?
+Todos den su reporte por favor
+Recibido alto y claro
+¿Hay alguien en Sevilla? ¡Emergencia!
+20 nodos, 12 directos
+Cambié al canal 14
+Aburrido… a esperar que llueva 😴
+Mensaje de emergencia — marcar 18
+Firmware v2.8.0 — todo ok ✅
+Todo bien por aquí 👍
+Zona urbana Barcelona
+ALGUIEN PARA UN CAFÉ VIRTUAL? ☕
+Actualizando a v2.7.3 ahora
+A 5 km al norte del puente
+Lluvia moderada, 13.1°C 🌧️
+Beacon de emergencia activado 🚨
+Temperatura 37.9°C, viento 54 km/h del SW
+Recibido alto y claro
+Día soleado, 26.0°C ☀️
+Hace 15.6°C, sensación 18.2°C
+Signal 5/5, batería 69%
+Lluvia moderada, 36.7°C 🌧️
+Zona urbana Granada
+Coordinación: todas las unidades confirmar
+¡Favor de reportar! Situación crítica 😀
+¿LISTOS? A LAS 3PM EN PUNTO 🔋
+Nodo count: 68
+¡Buenos días!
+Se perdió grupo — requerimos ayuda
+En la cima del Cerro Verde 📍
+5 saltos hasta la base
+Canal 17 — primary ahora
+Nublado, 22.4°C, lluvia al 40%
+Día tranquilo en la zona
+¡Saludos desde Barcelona!
+¡Hola a todos!
+Rumbo al punto 19, confirmen
+Punto 2 establecido, cubriendo zona
+Rally en Bilbao a las 2pm
+Día soleado, 9.1°C ☀️
+Nodo Node-7B en línea
+Todos den su reporte por favor
+Batería OK (13%), signal 2
+BEACON ACTIVADO POR REPEATER-1
+8 nodos, 9 directos
+¡Gracias por la red! ⭐
+¿Qué tal? ¿Me reciben?
+¿Hay alguien en Sevilla? ¡Emergencia!
+Clima: nublado, 36.2°C 💨
+Por la zona de Málaga
+Signal 5/5, batería 28%
+¡Bonito día hoy! 🌞
+Día bonito para mesh 🏔️
+CONFIRMO QUE RECIBO FUERTE
+¡Buenos días!
+Refugio de montaña, GPS ok
+¡Calor! 8.5°C y subiendo 🔥 🌞
+Firmware v2.7.3 — todo ok ✅
+2/5 signal, todo estable
+Punto 9 establecido, cubriendo zona
+Se perdió grupo — requerimos ayuda
+Buenas, aquí Repeater-1 5/5
+Aquí andamos, ¿y ustedes? 📡
+Nublado, 2.9°C, lluvia al 40%
+¡BUENAS TARDES!
+AYUDA REQUERIDA EN COORDENADAS 40.0764,3.4949
+Buena red hoy, saludos
+Buena red hoy, saludos
+Reforzar posición en parque central
+¿Hay alguien en Zaragoza? ¡Emergencia!
+Temperatura 6.3°C, viento 38 km/h del SW
+¿Alguien me recibe? ¡Emergencia!
+Rangetest: 7.6 km resultados
+Reforzar posición en río
+GPS: 41.8957, 6.1918
+Cerca del antena
+Batería OK (52%), signal 5
+¿Qué tal el finde?
+Todo bien por aquí 👍
+Coordenadas: 37.2716, 6.8568
+¡Buena malla hoy!
+Grupo 5 en posición 3
+¡Hey! ¿Hay alguien activo?
+TODO OK POR MI PARTE
+¡Hey! ¿Hay alguien activo?
+Nodo Node-7B en línea
+Día tranquilo en la zona
+Batería al 40%
+ME MUEVO HACIA EL NORTE
+CHECK-IN GENERAL — ¿QUIÉN RECIBE?
+Estoy en 38.0502 N, 3.8178 W
+5 saltos hasta la base
+A ver si alguien me lee…
+Se perdió grupo — requerimos ayuda
+Coordinación: todas las unidades confirmar
+Alerta: necesito asistencia médica
+¡EMERGENCIA! NECESITO AYUDA EN PUNTO 48 🚨
+Día soleado, -1.7°C ☀️
+Punto 6 establecido, cubriendo zona
+Confirmo que recibo fuerte
+Todo bien por aquí 👍
+Todos a cobertura, nos movemos
+Test de alcance, ¿me leen?
+¡Hey! ¿Hay alguien activo?
+Firmware v2.6.1 — todo ok ✅
+Lluvia moderada, 25.2°C 🌧️
+¡Emergencia! Necesito ayuda en punto 48 🚨
+Canales: 1, 4 activos
+Beacon activado por Mesh-ES
+Buen día para hoy
+Cambié al canal 15
+Día bonito para mesh 🏔️
+Coordinación: todas las unidades confirmar
+Ayuda requerida en coordenadas 41.1790,6.2406
+Signal 1/5, batería 25%
+Alerta: necesito asistencia médica
+DÍA TRANQUILO EN LA ZONA
+¡Aquí sigo! Signal 4/5
+Signal débil aquí, solo 1 barra 📶
+Clima: despejado, 18.6°C 💨
+Mesh estable, 24 nodos 🌐
+¡Hey! ¿Hay alguien activo?
+Equipo 2, muévanse al punto 15
+Estoy en 42.9828 N, 7.2802 W
+Buen finde para todos
+Día soleado, 8.9°C ☀️
+¿Listos? A las 3pm en punto
+Signal débil aquí, solo 1 barra 📶
+Nublado, 21.6°C, lluvia al 40%
+Equipo 2, muévanse al punto 19
+¡Buenos días!
+Alerta: necesito asistencia médica
+15 NODOS EN LA RED
+Signal débil aquí, solo 1 barra 📶
+Yo por aquí, todo tranquilo
+Estoy en 40.8602 N, 5.1390 W
+Nodos activos: 46
+Signal débil aquí, solo 1 barra 📶
+Zona urbana Madrid
+Por la zona de Zaragoza
+34.9°C, HUMEDAD 27%
+¡Hola a todos!
+Refugio de montaña, GPS ok
+Equipo 2, muévanse al punto 12
+Nodos activos: 68
+Todos a cobertura, nos movemos
+Alguien para un café virtual? ☕
+A ver si alguien me lee…
+¡Salud desde Granada!
+Todo bien por aquí 👍
+En la costa, 24 km al sur
+Tormenta aproximándose ⛈️
+Todos a cobertura, nos movemos
+¿Listos? A las 3pm en punto
+¡Urgente! Equipo en problemas
+A 5 km al norte del puente
+Conectado directo, signal 1
+¡Gracias por la red! ⭐
+Mensaje de emergencia — marcar 29
+Canal 11 — primary ahora
+¡CALOR! 9.8°C Y SUBIENDO 🔥
+Buen día para hoy
+¡Saludos desde Málaga!
+Nivel de batería: 38% 🔋
+39.7°C, humedad 84%

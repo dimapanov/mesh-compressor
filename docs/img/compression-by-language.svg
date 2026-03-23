@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="520" viewBox="0 0 800 520">
+  <defs>
+    <style>text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #1f2328; }</style>
+  </defs>
+  <rect width="800" height="520" fill="#ffffff" rx="8"/>
+
+  <text x="400" y="32" text-anchor="middle" font-size="15" font-weight="600">Compression ratio by language — universal model (10 languages, 3.5 MB)</text>
+  <text x="400" y="52" text-anchor="middle" font-size="12" fill="#6b7280">% of original UTF-8 size saved · higher is better</text>
+
+  <!-- Bars: Arabic 84%, Japanese 79%, Korean 79%, English 77%, Russian 77%, Spanish 75%, French 75%, Portuguese 75%, German 74%, Chinese 74% -->
+
+  <!-- Arabic 84% -->
+  <text x="128" y="94" text-anchor="end" font-size="13" fill="#1f2328">Arabic  العربية</text>
+  <rect x="136" y="80" width="504" height="24" rx="4" fill="#16a34a"/>
+  <text x="648" y="97" font-size="12" fill="#ffffff" font-weight="600">84%</text>
+
+  <!-- Japanese 79% -->
+  <text x="128" y="134" text-anchor="end" font-size="13" fill="#1f2328">Japanese  日本語</text>
+  <rect x="136" y="120" width="474" height="24" rx="4" fill="#16a34a"/>
+  <text x="618" y="137" font-size="12" fill="#ffffff" font-weight="600">79%</text>
+
+  <!-- Korean 79% -->
+  <text x="128" y="174" text-anchor="end" font-size="13" fill="#1f2328">Korean  한국어</text>
+  <rect x="136" y="160" width="474" height="24" rx="4" fill="#16a34a"/>
+  <text x="618" y="177" font-size="12" fill="#ffffff" font-weight="600">79%</text>
+
+  <!-- English 77% -->
+  <text x="128" y="214" text-anchor="end" font-size="13" fill="#1f2328">English</text>
+  <rect x="136" y="200" width="462" height="24" rx="4" fill="#16a34a"/>
+  <text x="606" y="217" font-size="12" fill="#ffffff" font-weight="600">77%</text>
+
+  <!-- Russian 77% -->
+  <text x="128" y="254" text-anchor="end" font-size="13" fill="#1f2328">Russian  Русский</text>
+  <rect x="136" y="240" width="462" height="24" rx="4" fill="#16a34a"/>
+  <text x="606" y="257" font-size="12" fill="#ffffff" font-weight="600">77%</text>
+
+  <!-- Spanish 75% -->
+  <text x="128" y="294" text-anchor="end" font-size="13" fill="#1f2328">Spanish  Español</text>
+  <rect x="136" y="280" width="450" height="24" rx="4" fill="#22c55e"/>
+  <text x="594" y="297" font-size="12" fill="#ffffff" font-weight="600">75%</text>
+
+  <!-- French 75% -->
+  <text x="128" y="334" text-anchor="end" font-size="13" fill="#1f2328">French  Français</text>
+  <rect x="136" y="320" width="450" height="24" rx="4" fill="#22c55e"/>
+  <text x="594" y="337" font-size="12" fill="#ffffff" font-weight="600">75%</text>
+
+  <!-- Portuguese 75% -->
+  <text x="128" y="374" text-anchor="end" font-size="13" fill="#1f2328">Portuguese  Português</text>
+  <rect x="136" y="360" width="450" height="24" rx="4" fill="#22c55e"/>
+  <text x="594" y="377" font-size="12" fill="#ffffff" font-weight="600">75%</text>
+
+  <!-- German 74% -->
+  <text x="128" y="414" text-anchor="end" font-size="13" fill="#1f2328">German  Deutsch</text>
+  <rect x="136" y="400" width="444" height="24" rx="4" fill="#22c55e"/>
+  <text x="588" y="417" font-size="12" fill="#ffffff" font-weight="600">74%</text>
+
+  <!-- Chinese 74% -->
+  <text x="128" y="454" text-anchor="end" font-size="13" fill="#1f2328">Chinese  中文</text>
+  <rect x="136" y="440" width="444" height="24" rx="4" fill="#22c55e"/>
+  <text x="588" y="457" font-size="12" fill="#ffffff" font-weight="600">74%</text>
+
+  <text x="400" y="495" text-anchor="middle" font-size="12" fill="#16a34a">One model · all languages · 100% lossless · 3.5 MB on ESP32</text>
+</svg>
