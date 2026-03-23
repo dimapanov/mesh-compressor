@@ -11,7 +11,6 @@ import numpy as np
 OUT_DIR = "docs/img"
 DPI = 180
 
-# ── Shared style ────────────────────────────────────────────
 plt.rcParams.update(
     {
         "font.family": "sans-serif",
@@ -44,7 +43,7 @@ def _save(fig, name):
 
 
 # ════════════════════════════════════════════════════════════
-# 1. OPTIMIZATION TIMELINE — key milestones
+# 1. OPTIMIZATION TIMELINE
 # ════════════════════════════════════════════════════════════
 def fig_optimization_timeline():
     steps = [
@@ -55,7 +54,7 @@ def fig_optimization_timeline():
         ("CJK 3× weight\n+ conf n+8", 3.210, "#F4A942"),
         ("Passthrough\n(zero overhead)", 3.207, "#4CAF50"),
         ("Compact header\n3B → 2B", 2.980, "#4CAF50"),
-        ("Confidence\nn+3 → n+1.5", 2.977, "#4CAF50"),
+        ("Conf n+1.5\n+ MQTT data", 2.970, "#4CAF50"),
     ]
 
     labels = [s[0] for s in steps]
@@ -63,8 +62,6 @@ def fig_optimization_timeline():
     colors = [s[2] for s in steps]
 
     fig, ax = plt.subplots(figsize=(14, 5.5))
-
-    # Phase bands
     ax.axvspan(-0.5, 2.5, alpha=0.06, color="#5B8DEE")
     ax.axvspan(2.5, 4.5, alpha=0.06, color="#F4A942")
     ax.axvspan(4.5, 7.5, alpha=0.06, color="#4CAF50")
@@ -92,7 +89,7 @@ def fig_optimization_timeline():
     ax.text(
         6.0,
         3.24,
-        "Format optimization",
+        "Format + data",
         ha="center",
         fontsize=9,
         color="#4CAF50",
@@ -118,7 +115,6 @@ def fig_optimization_timeline():
             color="#333",
         )
 
-    # Arrow for biggest drop
     ax.annotate(
         "",
         xy=(6, 2.980),
@@ -142,7 +138,7 @@ def fig_optimization_timeline():
     ax.set_xticklabels(labels, fontsize=8)
     ax.set_ylabel("Bits per character (BPC)", fontsize=11)
     ax.set_title(
-        "Compression optimization progress (lower = better)",
+        "Compression optimization progress — RU+EN test set (lower = better)",
         fontsize=13,
         fontweight="bold",
         pad=15,
@@ -153,69 +149,99 @@ def fig_optimization_timeline():
 
 
 # ════════════════════════════════════════════════════════════
-# 2. BPC BEFORE / AFTER  by language
+# 2. COMPRESSION BY LANGUAGE — real vs synthetic test data
 # ════════════════════════════════════════════════════════════
-def fig_before_after_languages():
-    langs = ["EN", "ES", "FR", "PT", "DE", "AR", "RU", "KO", "JA", "ZH"]
-    bpc_before = [2.208, 1.600, 1.764, 1.774, 1.837, 1.841, 3.271, 3.454, 3.906, 4.759]
-    bpc_after = [1.964, 1.600, 1.764, 1.774, 1.837, 1.841, 3.041, 2.859, 3.225, 3.950]
+def fig_compression_by_language():
+    # Honest eval_all numbers
+    # Real MQTT test data
+    real_langs = ["RU", "EN", "NO", "PL", "DE", "ES", "PT", "FR", "SV"]
+    real_ratios = [78.4, 73.2, 64.4, 50.4, 42.5, 44.4, 42.7, 40.7, 39.9]
+    # Synthetic test data
+    synth_langs = ["AR", "KO", "JA", "ZH"]
+    synth_ratios = [82.4, 76.6, 75.7, 73.5]
 
-    idx = np.argsort(bpc_after)
-    langs = [langs[i] for i in idx]
-    bpc_before = [bpc_before[i] for i in idx]
-    bpc_after = [bpc_after[i] for i in idx]
-
-    x = np.arange(len(langs))
-    w = 0.35
-    fig, ax = plt.subplots(figsize=(12, 5.5))
-    ax.bar(
-        x - w / 2,
-        bpc_before,
-        w,
-        label="Before (3-byte header)",
-        color="#EF9A9A",
-        edgecolor="white",
-        lw=0.8,
-    )
-    ax.bar(
-        x + w / 2,
-        bpc_after,
-        w,
-        label="After  (2-byte + passthrough)",
-        color="#81C784",
-        edgecolor="white",
-        lw=0.8,
+    fig, (ax1, ax2) = plt.subplots(
+        1, 2, figsize=(14, 5.5), gridspec_kw={"width_ratios": [9, 4]}
     )
 
-    for i in range(len(langs)):
-        d = bpc_after[i] - bpc_before[i]
-        if abs(d) > 0.01:
-            ax.text(
-                x[i] + w / 2,
-                bpc_after[i] + 0.06,
-                f"{d / bpc_before[i] * 100:.0f}%",
-                ha="center",
-                va="bottom",
-                fontsize=8,
-                fontweight="bold",
-                color="#2E7D32",
-            )
+    # Left: real data
+    idx_r = np.argsort(real_ratios)[::-1]
+    r_sorted = [real_langs[i] for i in idx_r]
+    rr_sorted = [real_ratios[i] for i in idx_r]
 
-    ax.set_xticks(x)
-    ax.set_xticklabels(langs, fontsize=11, fontweight="bold")
-    ax.set_ylabel("Bits per character (BPC)", fontsize=11)
-    ax.set_title(
-        "BPC by language: before vs after format optimization",
-        fontsize=13,
+    colors_r = [
+        "#4CAF50" if r >= 60 else "#FFA726" if r >= 45 else "#EF5350" for r in rr_sorted
+    ]
+    bars = ax1.barh(
+        range(len(r_sorted)),
+        rr_sorted,
+        color=colors_r,
+        edgecolor="white",
+        lw=0.8,
+        height=0.65,
+    )
+    for i, (lang, r) in enumerate(zip(r_sorted, rr_sorted)):
+        ax1.text(
+            r + 0.8,
+            i,
+            f"{r:.0f}%",
+            va="center",
+            fontsize=10,
+            fontweight="bold",
+            color="#333",
+        )
+    ax1.set_yticks(range(len(r_sorted)))
+    ax1.set_yticklabels(r_sorted, fontsize=12, fontweight="bold")
+    ax1.set_xlabel("Compression ratio (%)", fontsize=11)
+    ax1.set_title("Real MQTT messages", fontsize=12, fontweight="bold")
+    ax1.set_xlim(0, 95)
+    ax1.invert_yaxis()
+    ax1.spines["left"].set_visible(False)
+    ax1.tick_params(axis="y", length=0)
+
+    # Right: synthetic data
+    idx_s = np.argsort(synth_ratios)[::-1]
+    s_sorted = [synth_langs[i] for i in idx_s]
+    sr_sorted = [synth_ratios[i] for i in idx_s]
+
+    bars2 = ax2.barh(
+        range(len(s_sorted)),
+        sr_sorted,
+        color="#90CAF9",
+        edgecolor="white",
+        lw=0.8,
+        height=0.65,
+    )
+    for i, (lang, r) in enumerate(zip(s_sorted, sr_sorted)):
+        ax2.text(
+            r + 0.8,
+            i,
+            f"{r:.0f}%",
+            va="center",
+            fontsize=10,
+            fontweight="bold",
+            color="#333",
+        )
+    ax2.set_yticks(range(len(s_sorted)))
+    ax2.set_yticklabels(s_sorted, fontsize=12, fontweight="bold")
+    ax2.set_xlabel("Compression ratio (%)", fontsize=11)
+    ax2.set_title("Synthetic test data *", fontsize=12, fontweight="bold", color="#666")
+    ax2.set_xlim(0, 95)
+    ax2.invert_yaxis()
+    ax2.spines["left"].set_visible(False)
+    ax2.tick_params(axis="y", length=0)
+
+    fig.suptitle(
+        "Compression ratio by language (universal model)",
+        fontsize=14,
         fontweight="bold",
+        y=1.02,
     )
-    ax.legend(fontsize=10, loc="upper left")
-    ax.set_ylim(0, 5.5)
-    _save(fig, "bpc-before-after")
+    _save(fig, "compression-by-language")
 
 
 # ════════════════════════════════════════════════════════════
-# 3. SHORT MESSAGE FIX — before / after passthrough
+# 3. SHORT MESSAGE FIX
 # ════════════════════════════════════════════════════════════
 def fig_short_message_fix():
     msgs = ["ok", "да", "hi", "Лол", "Мм?", "Ое", "Ккк", "Впн", "нет", "тест", "привет"]
@@ -276,63 +302,90 @@ def fig_short_message_fix():
 
 
 # ════════════════════════════════════════════════════════════
-# 4. COMPRESSION BY LANGUAGE — horizontal bars (updated)
+# 4. COMPRESSION COMPARISON — n-gram+AC vs zlib vs Unishox2
 # ════════════════════════════════════════════════════════════
-def fig_compression_by_language():
-    langs = ["AR", "JA", "KO", "ES", "EN", "FR", "PT", "DE", "RU", "ZH"]
-    ratios = [86.8, 83.2, 82.5, 81.1, 79.1, 79.3, 79.3, 78.4, 78.0, 78.5]
+def fig_compression_comparison():
+    labels = [
+        "Привет, как дела?",
+        "Check channel 5",
+        "Battery 40%,\npower save",
+        "Проверка связи.\nКак слышно?",
+        "Long EN\n(104 chars)",
+        "Long RU\n(229 bytes)",
+    ]
+    utf8 = [30, 15, 39, 49, 104, 229]
+    zlib = [41, 23, 47, 57, 96, 156]
+    unishox = [20, 11, 26, 28, 65, 120]
+    ngram = [6, 6, 11, 6, 52, 30]
 
-    idx = np.argsort(ratios)[::-1]
-    langs = [langs[i] for i in idx]
-    ratios = [ratios[i] for i in idx]
-
-    colors = []
-    for r in ratios:
-        if r >= 82:
-            colors.append("#4CAF50")
-        elif r >= 79:
-            colors.append("#66BB6A")
-        else:
-            colors.append("#81C784")
-
-    fig, ax = plt.subplots(figsize=(10, 5.5))
-    bars = ax.barh(
-        range(len(langs)),
-        ratios,
-        color=colors,
+    x = np.arange(len(labels))
+    w = 0.20
+    fig, ax = plt.subplots(figsize=(13, 6))
+    ax.bar(
+        x - 1.5 * w, utf8, w, label="UTF-8", color="#BDBDBD", edgecolor="white", lw=0.8
+    )
+    ax.bar(
+        x - 0.5 * w, zlib, w, label="zlib", color="#EF9A9A", edgecolor="white", lw=0.8
+    )
+    ax.bar(
+        x + 0.5 * w,
+        unishox,
+        w,
+        label="Unishox2",
+        color="#FFE082",
         edgecolor="white",
-        linewidth=0.8,
-        height=0.65,
+        lw=0.8,
+    )
+    ax.bar(
+        x + 1.5 * w,
+        ngram,
+        w,
+        label="n-gram + AC",
+        color="#81C784",
+        edgecolor="white",
+        lw=0.8,
     )
 
-    for i, (lang, r) in enumerate(zip(langs, ratios)):
+    for i in range(len(labels)):
+        pct = (1 - ngram[i] / utf8[i]) * 100
         ax.text(
-            r + 0.5,
-            i,
-            f"{r:.1f}%",
-            va="center",
-            fontsize=10,
+            x[i] + 1.5 * w,
+            ngram[i] + 1,
+            f"−{pct:.0f}%",
+            ha="center",
+            va="bottom",
+            fontsize=8,
             fontweight="bold",
-            color="#333",
+            color="#2E7D32",
         )
+    for i in range(len(labels)):
+        if zlib[i] > utf8[i]:
+            ax.text(
+                x[i] - 0.5 * w,
+                zlib[i] + 1,
+                f"+{(zlib[i] / utf8[i] - 1) * 100:.0f}%",
+                ha="center",
+                va="bottom",
+                fontsize=7,
+                color="#C62828",
+                fontweight="bold",
+            )
 
-    ax.set_yticks(range(len(langs)))
-    ax.set_yticklabels(langs, fontsize=12, fontweight="bold")
-    ax.set_xlabel("Compression ratio (%)", fontsize=11)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, fontsize=8.5, ha="center")
+    ax.set_ylabel("Compressed size (bytes)", fontsize=11)
     ax.set_title(
-        "Compression ratio by language (universal model, 10 languages)",
+        "Compression comparison: n-gram+AC vs alternatives",
         fontsize=13,
         fontweight="bold",
     )
-    ax.set_xlim(60, 95)
-    ax.invert_yaxis()
-    ax.spines["left"].set_visible(False)
-    ax.tick_params(axis="y", length=0)
-    _save(fig, "compression-by-language")
+    ax.legend(fontsize=9.5, loc="upper left")
+    ax.set_ylim(0, max(utf8) * 1.15)
+    _save(fig, "compression-comparison")
 
 
 # ════════════════════════════════════════════════════════════
-# 5. COMPRESSION BY LENGTH — bar chart (updated)
+# 5. COMPRESSION BY LENGTH
 # ════════════════════════════════════════════════════════════
 def fig_compression_by_length():
     buckets = ["1–10", "11–20", "21–50", "51–100", "101–200", "201+"]
@@ -340,16 +393,15 @@ def fig_compression_by_length():
     counts = [55, 214, 780, 617, 332, 2]
 
     fig, ax1 = plt.subplots(figsize=(10, 5.5))
-
     color_bars = "#5B8DEE"
     color_line = "#F4A942"
 
-    bars = ax1.bar(
+    ax1.bar(
         range(len(buckets)),
         ratios,
         color=color_bars,
         edgecolor="white",
-        linewidth=0.8,
+        lw=0.8,
         width=0.6,
         alpha=0.85,
         zorder=2,
@@ -402,109 +454,18 @@ def fig_compression_by_length():
 
 
 # ════════════════════════════════════════════════════════════
-# 6. COMPRESSION COMPARISON — n-gram+AC vs zlib vs Unishox2
-# ════════════════════════════════════════════════════════════
-def fig_compression_comparison():
-    labels = [
-        "Привет, как дела?",
-        "Check channel 5",
-        "Battery 40%, power save",
-        "Проверка связи.\nКак слышно?",
-        "Long EN (104 chars)",
-        "Long RU (229 bytes)",
-    ]
-    utf8 = [30, 15, 39, 49, 104, 229]
-    zlib = [41, 23, 47, 57, 96, 156]
-    unishox = [20, 11, 26, 28, 65, 120]
-    ngram = [6, 6, 11, 6, 52, 30]
-
-    x = np.arange(len(labels))
-    w = 0.20
-
-    fig, ax = plt.subplots(figsize=(13, 6))
-    ax.bar(
-        x - 1.5 * w, utf8, w, label="UTF-8", color="#BDBDBD", edgecolor="white", lw=0.8
-    )
-    ax.bar(
-        x - 0.5 * w, zlib, w, label="zlib", color="#EF9A9A", edgecolor="white", lw=0.8
-    )
-    ax.bar(
-        x + 0.5 * w,
-        unishox,
-        w,
-        label="Unishox2",
-        color="#FFE082",
-        edgecolor="white",
-        lw=0.8,
-    )
-    ax.bar(
-        x + 1.5 * w,
-        ngram,
-        w,
-        label="n-gram + AC",
-        color="#81C784",
-        edgecolor="white",
-        lw=0.8,
-    )
-
-    # % annotations on n-gram bars
-    for i in range(len(labels)):
-        pct = (1 - ngram[i] / utf8[i]) * 100
-        ax.text(
-            x[i] + 1.5 * w,
-            ngram[i] + 1,
-            f"−{pct:.0f}%",
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            fontweight="bold",
-            color="#2E7D32",
-        )
-
-    # Mark zlib expansion
-    for i in range(len(labels)):
-        if zlib[i] > utf8[i]:
-            ax.text(
-                x[i] - 0.5 * w,
-                zlib[i] + 1,
-                f"+{(zlib[i] / utf8[i] - 1) * 100:.0f}%",
-                ha="center",
-                va="bottom",
-                fontsize=7,
-                color="#C62828",
-                fontweight="bold",
-            )
-
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize=8.5, ha="center")
-    ax.set_ylabel("Compressed size (bytes)", fontsize=11)
-    ax.set_title(
-        "Compression comparison: n-gram+AC vs alternatives",
-        fontsize=13,
-        fontweight="bold",
-    )
-    ax.legend(fontsize=9.5, loc="upper left")
-    ax.set_ylim(0, max(utf8) * 1.15)
-    _save(fig, "compression-comparison")
-
-
-# ════════════════════════════════════════════════════════════
-# 7. CAPACITY — how many chars fit in 233 bytes
+# 6. CAPACITY
 # ════════════════════════════════════════════════════════════
 def fig_capacity():
     scripts = ["Latin (EN)", "Cyrillic (RU)", "CJK (ZH)", "Arabic (AR)", "Hangul (KO)"]
-    # Uncompressed capacity (233 bytes ÷ bytes-per-char)
     raw = [233, 116, 77, 116, 77]
-    # Compressed: 233 bytes × (1 / (1 - ratio))... but simpler:
-    # avg chars/compressed_byte ~ 1/bpc*8
-    # or: capacity ≈ 233 * 8 / bpc
-    # EN: 233*8/1.68 ≈ 1110,  RU: 233*8/3.03 ≈ 615,  ZH: 233*8/3.94 ≈ 473
-    # AR: 233*8/1.84 ≈ 1013,  KO: 233*8/2.86 ≈ 652
-    comp = [1110, 615, 473, 1013, 652]
+    # capacity ≈ 233 * 8 / bpc  (from honest eval)
+    # EN: 233*8/2.19≈850, RU: 233*8/3.02≈618, ZH: 233*8/3.76≈496
+    # AR: 233*8/2.29≈813, KO: 233*8/3.07≈607
+    comp = [850, 618, 496, 813, 607]
 
     x = np.arange(len(scripts))
     w = 0.35
-
     fig, ax = plt.subplots(figsize=(11, 5.5))
     ax.bar(
         x - w / 2,
@@ -573,10 +534,9 @@ def fig_capacity():
 if __name__ == "__main__":
     print("Generating all charts...")
     fig_optimization_timeline()
-    fig_before_after_languages()
-    fig_short_message_fix()
     fig_compression_by_language()
-    fig_compression_by_length()
+    fig_short_message_fix()
     fig_compression_comparison()
+    fig_compression_by_length()
     fig_capacity()
     print("All done!")

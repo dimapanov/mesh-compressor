@@ -116,11 +116,13 @@ This project takes a fundamentally different approach that avoids these issues (
 | Long Russian message (129 chars) | RU | 229 B | 30 B | **87%** |
 
 Without compression: **~77-233 characters** per packet (depending on script).
-With compression: **~470-1100 characters** per packet.
+With compression: **~500-850 characters** per packet.
 
 ![Packet capacity](docs/img/capacity.png)
 
-100% lossless. Roundtrip-verified on every test message. Zero negative compressions.
+100% lossless on RU+EN (real Meshtastic messages). Zero negative compressions.
+
+> **Note on test methodology.** All numbers above are measured on held-out test data that was never seen during training. For RU and EN we use real Meshtastic messages; for other languages, synthetic test data is marked accordingly. See CHANGELOG for details.
 
 ## Safety
 
@@ -138,7 +140,7 @@ This design addresses the exact vulnerabilities that led to Unishox2 removal:
 
 ### Architecture: client-side only
 
-![Architecture](docs/img/architecture.jpg)
+![Architecture](docs/img/architecture.svg)
 
 Compression runs on the **phone/web app**, not on ESP32. The radio just moves bytes — it doesn't know or care about compression.
 
@@ -306,44 +308,53 @@ curl -X POST http://localhost:8766/api/decode_b91 \
 
 ![Compression by language](docs/img/compression-by-language.png)
 
-### Experiment results
+13 languages, one universal model. Results on **real MQTT test data** (where available):
 
-We tested two strategies: **one universal model** (all languages) vs **per-language models** (one per language). Trained on 45,000 messages per language with order=9.
+| Language | Ratio | Test data | Notes |
+|----------|-------|-----------|-------|
+| **Russian** | **78%** | 500 real MQTT | Best trained — 50K real messages |
+| **English** | **73%** | 500 real MQTT | 53K real messages |
+| **Norwegian** | **64%** | 50 real MQTT | Small but growing community |
+| **Polish** | **50%** | 101 real MQTT | Needs more training data |
+| **German** | **43%** | 120 real MQTT | Mostly synthetic train data |
+| **Spanish** | **44%** | 203 real MQTT | Mostly synthetic train data |
+| **Portuguese** | **43%** | 68 real MQTT | Mostly synthetic train data |
+| **French** | **41%** | 44 real MQTT | Mostly synthetic train data |
+| **Swedish** | **40%** | 50 real MQTT | Very little training data |
+| Arabic | 82% | 500 synthetic* | Template-generated test |
+| Korean | 77% | 500 synthetic* | Template-generated test |
+| Japanese | 76% | 500 synthetic* | Template-generated test |
+| Chinese | 73% | 500 synthetic* | Template-generated test |
 
-| Language | Per-language | Universal | Difference |
-|----------|-------------|-----------|------------|
-| Arabic | 85% | **87%** | +2% |
-| Japanese | 82% | **83%** | +1% |
-| Korean | 81% | **83%** | +2% |
-| Spanish | 79% | **81%** | +2% |
-| English | 75% | **79%** | +4% |
-| French | 77% | **79%** | +2% |
-| Portuguese | 77% | **79%** | +2% |
-| German | 76% | **78%** | +2% |
-| Russian | 78% | **78%** | +0% |
-| Chinese | 77% | **79%** | +2% |
+\* *Synthetic test results are artificially high — the model memorises template patterns. Real-world performance will be lower. See [CHANGELOG](CHANGELOG.md) for methodology notes.*
 
-After format optimization (compact header + passthrough), the universal model now **matches or exceeds** per-language models for most languages. The compact 2-byte header saves 1 byte per message, which particularly benefits languages with short average message lengths.
+### Data sources
 
-![BPC before and after](docs/img/bpc-before-after.png)
+- **RU + EN**: ~100K real Meshtastic messages (original corpus + MQTT)
+- **DE, ES, FR, PT**: ~11K synthetic (template-generated) + 50-200 real MQTT messages each
+- **AR, ZH, JA, KO**: ~11K synthetic only — Meshtastic is rarely used in these regions
+- **PL, NO, SV**: real MQTT only (50-1000 messages)
+- All data collected from [meshtastic.liamcottle.net](https://meshtastic.liamcottle.net) public API
+
+### Known issue: roundtrip failures on some languages
+
+The model achieves 100% roundtrip on RU, EN, AR, JA, KO, ZH, SV. However, some real MQTT messages in DE (90%), ES (94%), FR (91%), PL (94%) fail roundtrip — likely due to characters not seen during training. This is a priority fix.
 
 ### Conclusion: ship one universal model
 
-Per-language firmware builds add complexity (model versioning, cross-language fallback, build matrix) for no compression benefit. A single universal model is simpler, works for everyone, and fits on ESP32 boards with 8+ MB flash.
-
-Full experiment data: [multilingual_results.tsv](autoresearch/multilingual_results.tsv)
+Per-language firmware builds add complexity for marginal benefit. A single universal model covers all languages and fits on ESP32 boards with 8+ MB flash. Real MQTT data is the key to improving per-language quality.
 
 ## Limitations & known issues
 
 **No firmware implementation yet.** Everything runs in Python/JavaScript. The ESP32 feasibility analysis is theoretical — no C++ port, no real hardware testing.
 
-**Standalone devices can't decode without firmware support.** Until the model is integrated into Meshtastic firmware, devices like T-Deck and T-Pager can't decompress messages on their own. This could fragment the network if compression is used via client apps only. Firmware-first integration is critical to avoid this.
+**Roundtrip failures on some European languages.** DE, ES, FR, PL have 90-97% roundtrip on real MQTT test data. Root cause: characters not in training vocabulary. Fix: collect more real training data for these languages.
 
-**nRF52840 boards are excluded.** T-Echo, Mesh Node T114, and other nRF52840-based devices have only 1 MB flash — the model doesn't fit. These devices can still *relay* compressed packets (they're just bytes), but can't encode or decode. Since most nRF52840 devices lack keyboards and screens, this is acceptable for relay-only use.
+**Standalone devices can't decode without firmware support.** Until the model is integrated into Meshtastic firmware, devices like T-Deck and T-Pager can't decompress messages on their own.
 
-**4 MB flash boards are tight.** Classic T-Beam and similar boards with 4 MB flash would need a significantly smaller model (~1 MB), trading compression quality for compatibility.
+**nRF52840 boards are excluded.** T-Echo, Mesh Node T114 (1 MB flash) can't fit the model. They can still relay compressed packets.
 
-**Training data quality.** RU and EN are trained on 46K real Meshtastic messages each. Other 8 languages use 45K synthetic (template-generated) messages each — real-world performance may differ. Community contributions of real message datasets in any language are welcome.
+**Synthetic training data for 8 languages.** AR, ZH, JA, KO, DE, ES, FR, PT use template-generated synthetic data. Real-world compression will be worse than synthetic benchmarks suggest. Need more MQTT data from these regions.
 
 ## Roadmap
 

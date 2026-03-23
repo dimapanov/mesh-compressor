@@ -1,5 +1,57 @@
 # Changelog
 
+## 2026-03-23 — Real MQTT data + clean datasets + honest eval
+
+**Added 10K real Meshtastic messages from MQTT, fixed test/train leakage, switched to JSONL datasets.**
+
+### Test methodology fix
+
+Previous eval had a critical blind spot: **70-75% of synthetic test messages were also in the training set** (template generator produced the same patterns in both). This inflated BPC numbers for DE, ES, FR, PT, ZH, AR, JA, KO.
+
+Fixed by:
+1. Created `build_datasets.py` — builds clean JSONL datasets from all sources with guaranteed zero train/test overlap
+2. Test data now prefers **real MQTT messages** (where available) over synthetic templates
+3. Added `eval_all.py` — unified evaluation on clean JSONL datasets with per-language breakdown
+
+### Real MQTT data
+
+Downloaded ~200K raw messages from [meshtastic.liamcottle.net](https://meshtastic.liamcottle.net) public API, yielding ~12K unique messages after deduplication:
+- EN: 6,056 real messages (from 53K total with original corpus)
+- RU: 4,239 real messages (from 52K total)
+- PL: 974 (new language)
+- NO: 201 (new language)
+- DE: 120, ES: 203, FR: 44, PT: 68, SV: 56
+
+### Honest numbers (no leakage)
+
+| Language | Ratio | BPC | Test source | Roundtrip |
+|----------|-------|-----|-------------|-----------|
+| RU | 78% | 3.02 | real MQTT | 100% |
+| EN | 73% | 2.19 | real MQTT | 99.8% |
+| NO | 64% | 3.00 | real MQTT | 98% |
+| PL | 50% | 4.19 | real MQTT | 94% |
+| DE | 43% | 4.73 | real MQTT | 90% |
+| ES | 44% | 4.61 | real MQTT | 94% |
+| PT | 43% | 4.86 | real MQTT | 97% |
+| FR | 41% | 4.88 | real MQTT | 91% |
+| SV | 40% | 5.01 | real MQTT | 100% |
+| AR | 82% | 2.29 | synthetic* | 100% |
+| KO | 77% | 3.07 | synthetic* | 100% |
+| JA | 76% | 3.49 | synthetic* | 100% |
+| ZH | 73% | 3.76 | synthetic* | 100% |
+
+\* Synthetic test results are inflated — model memorises template patterns.
+
+### Repo cleanup
+
+- Removed old JPG images (replaced by PNG)
+- Removed one-off experiment scripts
+- Removed train_all/test_all concatenation files
+- Added .gitignore for MQTT raw data, local experiment logs
+- 3 new languages: PL, NO, SV
+
+---
+
 ## 2026-03-23 — Format optimization: passthrough + compact header
 
 **BPC: 3.210 → 2.977 (−7.3%). Negative compression eliminated (19 → 0 cases).**
