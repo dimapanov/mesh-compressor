@@ -4,13 +4,13 @@
   </defs>
   <rect width="850" height="280" fill="#ffffff" rx="8"/>
 
-  <text x="425" y="28" text-anchor="middle" font-size="14" font-weight="600">Architecture: compression runs on client, not on ESP32</text>
+  <text x="425" y="28" text-anchor="middle" font-size="14" font-weight="600">Architecture: client-side only</text>
 
   <!-- Sender phone -->
   <rect x="20" y="55" width="160" height="90" rx="8" fill="none" stroke="#2563eb" stroke-width="2"/>
   <text x="100" y="78" text-anchor="middle" font-size="13" font-weight="600" fill="#2563eb">Phone / Browser</text>
   <text x="100" y="98" text-anchor="middle" font-size="11" fill="#6b7280">Text → compress() → bytes</text>
-  <text x="100" y="116" text-anchor="middle" font-size="10" fill="#2563eb">Model: 12 MB</text>
+  <text x="100" y="116" text-anchor="middle" font-size="10" fill="#2563eb">Model: 3.0 MB</text>
   <text x="100" y="134" text-anchor="middle" font-size="10" fill="#6b7280">~2 ms encode</text>
   <text x="100" y="160" text-anchor="middle" font-size="10" fill="#2563eb">SENDER</text>
 
@@ -50,7 +50,7 @@
   <rect x="680" y="55" width="150" height="90" rx="8" fill="none" stroke="#16a34a" stroke-width="2"/>
   <text x="755" y="78" text-anchor="middle" font-size="13" font-weight="600" fill="#16a34a">Phone / Browser</text>
   <text x="755" y="98" text-anchor="middle" font-size="11" fill="#6b7280">bytes → decompress() → Text</text>
-  <text x="755" y="116" text-anchor="middle" font-size="10" fill="#2563eb">Model: 12 MB</text>
+  <text x="755" y="116" text-anchor="middle" font-size="10" fill="#16a34a">Model: 3.0 MB</text>
   <text x="755" y="134" text-anchor="middle" font-size="10" fill="#6b7280">~0.2 ms decode</text>
   <text x="755" y="160" text-anchor="middle" font-size="10" fill="#16a34a">RECEIVER</text>
 

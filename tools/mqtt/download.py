@@ -23,7 +23,7 @@ from urllib.error import URLError
 
 API_BASE = "https://meshtastic.liamcottle.net/api/v1/text-messages"
 BATCH_SIZE = 500  # max count per request
-DATA_DIR = Path(__file__).parent / "data" / "mqtt"
+DATA_DIR = Path(__file__).parent.parent.parent / "data" / "mqtt"
 RAW_FILE = DATA_DIR / "_raw_messages.jsonl"
 
 
@@ -288,7 +288,7 @@ def process_and_export(min_messages=200):
         print(f"  {lang:>5}: {len(msgs):>6} unique messages")
 
     # Export
-    out_dir = Path(__file__).parent / "data" / "mqtt_export"
+    out_dir = Path(__file__).parent.parent.parent / "data" / "mqtt_export"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\nExporting to {out_dir}/ (min {min_messages} per lang):")

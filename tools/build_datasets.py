@@ -15,7 +15,7 @@ from pathlib import Path
 
 SEED = 42
 TEST_PER_LANG = 500
-DATA_DIR = Path(__file__).parent / "data"
+DATA_DIR = Path(__file__).parent.parent / "data"
 MULTI_DIR = DATA_DIR / "multilingual"
 MQTT_DIR = DATA_DIR / "mqtt_export"
 OUT_DIR = DATA_DIR / "datasets"

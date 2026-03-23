@@ -21,9 +21,9 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from autoresearch.compress import train_model, ORDER
+from src.compress import train_model, ORDER
 
 
 def main():
@@ -47,7 +47,7 @@ def main():
     )
     args = parser.parse_args()
 
-    train_path = Path(__file__).parent / "data" / "train.txt"
+    train_path = Path(__file__).parent.parent / "data" / "train.txt"
     print(f"Loading training data from {train_path}...")
     msgs = [l.strip() for l in open(train_path, encoding="utf-8") if l.strip()]
     print(f"  {len(msgs)} messages")

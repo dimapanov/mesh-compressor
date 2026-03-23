@@ -40,7 +40,7 @@ PASSWORD = "large4cats"
 TOPIC = "msh/+/2/e/LongFast/#"  # All regions, default channel
 DEFAULT_KEY = b"\x01" + b"\x00" * 15  # AQ== padded to 16 bytes
 
-DATA_DIR = Path(__file__).parent / "data" / "mqtt"
+DATA_DIR = Path(__file__).parent.parent.parent / "data" / "mqtt"
 DEDUP_WINDOW = 3600  # seconds — ignore duplicate texts within this window
 
 # ── Language detection ──────────────────────────────────────
@@ -440,7 +440,7 @@ def export_datasets(min_messages=50):
     random.seed(42)
 
     data_dir = DATA_DIR
-    out_dir = Path(__file__).parent / "data" / "multilingual"
+    out_dir = Path(__file__).parent.parent.parent / "data" / "multilingual"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Exporting from {data_dir} to {out_dir}")

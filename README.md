@@ -28,23 +28,24 @@ Imagine you're typing a message to a friend: **«Приве...»**. What's the n
 
 ```
 Your message                          "Привет, как дела?"
-    │
+    │                                 (30 bytes in UTF-8)
     ▼
 [1] Model predicts each next char     П→р (95%) р→и (88%) и→в (91%) ...
-    │
+    │                                 High confidence = fewer bits
     ▼
-[2] Arithmetic coder turns             Predictions + actual chars
-    predictions into a number         → one compact binary number
-    │
+[2] Arithmetic coder encodes          95% confident = 0.07 bits
+    each char using its probability   88% confident = 0.18 bits
+                                      5% surprise  = 4.3 bits
+    │                                 Whole message → 32 bits total
     ▼
-[3] Add a tiny header                 2 bytes: message length + flags
-    │
+[3] Pack into bytes + 2-byte header   [0x00] [0x11] [00 93 f7 94 30]
+    │                                 = 7 bytes
     ▼
-[4] Passthrough check                 If result > original UTF-8 →
-                                      just send raw UTF-8 (short msgs)
-    │
+[4] Passthrough check                 7 < 30? Yes → send compressed
+    │                                 (if 7 ≥ 30 → send raw UTF-8)
     ▼
-Output                                6 bytes (was 30 — saved 80%)
+Output                                00 11 00 93 f7 94 30
+                                      7 bytes (was 30 — saved 77%)
 ```
 
 On the receiving side, the same steps run in reverse: read the header → feed the number into the arithmetic decoder → the model predicts letters one by one → original text is restored perfectly.
@@ -149,9 +150,11 @@ This is the right architecture for initial deployment:
 - No firmware changes needed — fast adoption path
 - The universal model (3.0 MB) can also run on ESP32 via flash mmap (see below), but client-side is simpler to ship first
 
-### ESP32 flash: it might actually work
+### ESP32 flash: tested on Heltec V3
 
-An [autoresearch sweep](autoresearch/search_results.tsv) across 72 order×threshold combinations found a surprising result: **order=9 with aggressive pruning compresses better than the full model.** A [multilingual experiment](autoresearch/multilingual_results.tsv) confirmed that one universal model covers 10 languages with only 1-2% less compression than per-language models.
+The 3.0 MB universal model runs on ESP32 via **flash mmap** (`esp_partition_mmap`). Tested on Heltec V3 (ESP32-S3FN8, 8 MB flash, no PSRAM) — compression and decompression work with ~1-2 KB RAM for the decoder state.
+
+An autoresearch sweep across 72 order×threshold combinations found that **order=9 with aggressive pruning compresses better than the full model.** One universal model covers 10 languages with only 1-2% less compression than per-language models.
 
 | Model | Languages | BPC (RU) | Binary size | Contexts | ESP32? |
 |-------|-----------|----------|-------------|----------|--------|
@@ -186,8 +189,6 @@ esp_partition_mmap(part, 0, part->size, ESP_PARTITION_MMAP_DATA, &model_ptr, &ha
 
 Boards with **PSRAM** (T-Beam S3 with ESP32-S3R8) can also load the model into PSRAM for faster random access, but flash mmap is sufficient — ESP32 cache handles hot paths well.
 
-> **Note:** Heltec V3 uses ESP32-S3**FN**8 — **no PSRAM** (the "N" = No PSRAM). Flash mmap is the only option for this board.
-
 | Board | SoC | Flash | PSRAM | Model (3.0 MB) fits? |
 |-------|-----|-------|-------|---------------------|
 | **T-Deck / T-Deck Plus** | ESP32-S3FN16R8 | **16 MB** | **8 MB** | ✅ plenty of room |
@@ -195,7 +196,7 @@ Boards with **PSRAM** (T-Beam S3 with ESP32-S3R8) can also load the model into P
 | T-Beam S3 Supreme | ESP32-S3R8 | 8 MB | 8 MB | ✅ custom partition |
 | Station G2 | ESP32-S3R8 | 16 MB | 8 MB | ✅ plenty of room |
 | Heltec Vision Master | ESP32-S3R8 | 8 MB | 8 MB | ✅ custom partition |
-| Heltec V3 | ESP32-S3FN8 | 8 MB | ❌ none | ✅ custom partition, flash mmap only |
+| Heltec V3 | ESP32-S3FN8 | 8 MB | ❌ none | ✅ tested, flash mmap only |
 | Heltec V4 | ESP32-S3R2 | 8 MB | 2 MB | ✅ custom partition |
 | T-Beam classic | ESP32 | 4 MB | 8 MB | ⚠️ needs smaller model (thr=200, 2.5 MB) |
 | T-Echo | nRF52840 | 1 MB | ❌ | ❌ too small |
@@ -204,7 +205,7 @@ Boards with **PSRAM** (T-Beam S3 with ESP32-S3R8) can also load the model into P
 
 Devices with keyboards (T-Deck, T-Pager) are the **primary targets** — that's where people type text. They have 16 MB flash, so the 3.0 MB model fits without any partition table changes. nRF52840 boards (T-Echo, Mesh Node T114) are mostly relay nodes with no keyboard — they just forward compressed bytes without needing the model.
 
-Not tested on real hardware yet — this is a proof of concept.
+> **Tested on Heltec V3** (ESP32-S3FN8, 8 MB flash, no PSRAM) with a custom partition table and flash mmap. Compression/decompression works. C++ decoder is in a separate branch.
 
 ### Proposed wire format
 
@@ -346,7 +347,7 @@ Per-language firmware builds add complexity for marginal benefit. A single unive
 
 ## Limitations & known issues
 
-**No firmware implementation yet.** Everything runs in Python/JavaScript. The ESP32 feasibility analysis is theoretical — no C++ port, no real hardware testing.
+**C++ decoder is a prototype.** Tested on Heltec V3, but not integrated into Meshtastic firmware yet. Python and JavaScript implementations are the main ones.
 
 **Roundtrip failures on some European languages.** DE, ES, FR, PL have 90-97% roundtrip on real MQTT test data. Root cause: characters not in training vocabulary. Fix: collect more real training data for these languages.
 
@@ -362,9 +363,7 @@ Per-language firmware builds add complexity for marginal benefit. A single unive
 
 **More languages** — The model can be extended to any language by adding training data. Hindi, Turkish, Indonesian, Thai, and other languages used in Meshtastic communities are natural next targets.
 
-**ESP32 C++ port** — Implement the decoder (and encoder) in C++ using `esp_partition_mmap` to read the model from flash. Target boards: T-Deck, T-Pager (16 MB flash), Heltec V3 (8 MB, custom partition). This is the critical path — firmware support must come before client app adoption to avoid network fragmentation.
-
-**Meshtastic firmware PR** — Integrate compression into the Meshtastic firmware using portnum 7 (`TEXT_MESSAGE_COMPRESSED_APP`), which already exists but is unused since Unishox2 was removed.
+**ESP32 C++ port → firmware PR** — The C++ decoder prototype works on Heltec V3 (separate branch). Next step: integrate into Meshtastic firmware using portnum 7 (`TEXT_MESSAGE_COMPRESSED_APP`), which already exists but is unused since Unishox2 was removed.
 
 **Client app integration** — Add compression support to Meshtastic Android, iOS, and Web apps. Should follow (not precede) firmware support.
 
@@ -374,7 +373,7 @@ Per-language firmware builds add complexity for marginal benefit. A single unive
 
 ## Autoresearch
 
-The `autoresearch/` directory contains a [Karpathy-style](https://github.com/karpathy/autoresearch) autonomous experimentation framework that iteratively improves the compression algorithm.
+The `tools/` directory contains evaluation and charting scripts that were used in [Karpathy-style](https://github.com/karpathy/autoresearch) autonomous experimentation to iteratively improve the compression algorithm.
 
 ![Optimization progress](docs/img/optimization-progress.png)
 
@@ -393,37 +392,32 @@ Three phases of optimization, 40+ experiments total:
 | multilingual | ESC_PROB, SCRIPT_BOOST, CJK weight | 3.210 | keep |
 | **format** | **passthrough + compact header + conf n+1.5** | **2.977** | **keep** |
 
-Full experiment logs: [results.tsv](autoresearch/results.tsv)
+Full experiment logs: [results.tsv](tools/results.tsv)
 
 ## Project structure
 
 ```
+src/                            Core compression engine
+  compress.py                   Language model + arithmetic coder (THE file)
+  base91.py                     Base91 encoder/decoder
+tools/                          CLI utilities
+  eval_all.py                   Unified JSONL-based evaluation harness
+  gen_charts.py                 Chart generator for README (matplotlib)
+  export_model.py               Export model to JSON for web UI
+  build_datasets.py             Build clean train/test JSONL from all sources
+  unpack_data.py                Unpack datasets.zip after cloning
+  results.tsv                   Experiment log (phase 1)
+  mqtt/                         MQTT data collection
+    download.py                 Download historical messages from Liam Cottle API
+    collector.py                Real-time MQTT subscriber
 docs/                           Web UI (GitHub Pages)
   index.html                    Interface (RU/EN toggle)
   compress.js                   JS compression engine
   model-universal-10lang.json   Universal model (10 languages, order=9)
-  img/                          Charts (generated by autoresearch/gen_charts.py)
+  img/                          Charts (generated by tools/gen_charts.py)
 data/                           Training and test data
-  train.txt                     92K training messages (RU + EN)
-  test.txt                      2K test messages (RU)
-  multilingual/                 Multilingual datasets (45K/lang)
-    train_{lang}.txt            Training data (es, de, fr, pt, zh, ar, ja, ko)
-    test_{lang}.txt             Test data per language
+  datasets.zip                  Single source of truth (train.jsonl + test.jsonl)
 server.py                       FastAPI server + API
-base91.py                       Base91 encoder/decoder
-export_model.py                 Export model to JSON
-autoresearch/                   Experimentation framework
-  compress.py                   Language model + arithmetic coder (THE file that gets optimized)
-  eval_short.py                 Short-message evaluation harness
-  eval_multilingual.py          Multilingual evaluation harness (10 languages)
-  gen_charts.py                 Chart generator for README (matplotlib)
-  prepare.py                    Original RU+EN evaluation harness (DO NOT MODIFY)
-  search_small_model.py         Model size/quality sweep
-  search_results.tsv            Full sweep results (72 combinations)
-  experiment_multilingual.py    Universal vs per-language comparison
-  generate_multilingual.py      Synthetic multilingual data generator
-  multilingual_results.tsv      Multilingual experiment results
-  results.tsv                   Experiment log (phase 1)
 ```
 
 ## License

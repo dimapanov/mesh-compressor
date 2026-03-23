@@ -7,12 +7,12 @@ run.log
 .pytest_cache/
 *.ngm
 
-# Raw MQTT data (large, download with mqtt_download.py)
+# Raw MQTT data (large, download with tools/mqtt/download.py)
 data/mqtt/
 data/mqtt_collected/
 data/mqtt_export/
 
-# Unpacked data (regenerate with: python3 unpack_data.py)
+# Unpacked data (regenerate with: python3 tools/unpack_data.py)
 data/datasets/*.jsonl
 data/multilingual/
 data/train.txt
@@ -20,10 +20,7 @@ data/test.txt
 
 # Local experiment logs
 autoresearch-results.tsv
-autoresearch/multilingual_run.log
+tools/multilingual_run.log
 
 # External repos
 meshtastic-firmware/
-
-# One-off scripts
-collect_api.py

@@ -102,9 +102,9 @@ Downloaded ~200K raw messages from [meshtastic.liamcottle.net](https://meshtasti
 
 ### Files changed
 
-- `autoresearch/compress.py` — passthrough logic, compact header, confidence tuning
-- `autoresearch/eval_short.py` — new evaluation harness for short message compression
-- `autoresearch/gen_charts.py` — new chart generator (matplotlib) for all README charts
+- `src/compress.py` — passthrough logic, compact header, confidence tuning
+- `tools/eval_all.py` — evaluation harness (was eval_short.py)
+- `tools/gen_charts.py` — chart generator (matplotlib) for all README charts
 - `docs/img/*.png` — regenerated all charts with current data
 - `README.md` — updated results, wire format docs, added "How compression works" section
 - `CHANGELOG.md` — this file

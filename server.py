@@ -16,10 +16,10 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from autoresearch.compress import train_model, compress, decompress
+from src.compress import train_model, compress, decompress
 
 # Base91 для текстового транспорта через Meshtastic TEXT_MESSAGE_APP
-from base91 import encode as b91_encode, decode as b91_decode
+from src.base91 import encode as b91_encode, decode as b91_decode
 
 # Meshtastic max payload size (bytes)
 MESHTASTIC_MAX_PAYLOAD = 233

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate all charts for README. Run from project root: python3 autoresearch/gen_charts.py"""
+"""Generate all charts for README. Run from project root: python3 tools/gen_charts.py"""
 
 import matplotlib
 
@@ -7,8 +7,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+from pathlib import Path
 
-OUT_DIR = "docs/img"
+OUT_DIR = str(Path(__file__).parent.parent / "docs" / "img")
 DPI = 180
 
 plt.rcParams.update(

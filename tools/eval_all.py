@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-autoresearch/eval_all.py — Unified evaluation on clean JSONL datasets.
+tools/eval_all.py — Unified evaluation on clean JSONL datasets.
 
 Trains universal model on data/datasets/train.jsonl,
 evaluates per-language on data/datasets/test.jsonl.
 
 Usage:
-    python3 -m autoresearch.eval_all 2>/dev/null | grep -E "^[a-z_]+:"
+    python3 -m tools.eval_all 2>/dev/null | grep -E "^[a-z_]+:"
 """
 
 import json
@@ -16,8 +16,8 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
-from compress import train_model, compress, decompress
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from src.compress import train_model, compress, decompress
 
 SEED = 42
 DATASETS_DIR = Path(__file__).parent.parent / "data" / "datasets"

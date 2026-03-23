@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-autoresearch/compress.py — THE FILE THE AGENT MODIFIES.
+src/compress.py — THE FILE THE AGENT MODIFIES.
 
 This file contains everything needed for compression:
   - Character-level n-gram language model
