@@ -141,7 +141,7 @@ This design addresses the exact vulnerabilities that led to Unishox2 removal:
 
 ### Architecture: client-side only
 
-![Architecture](docs/img/architecture.svg)
+![Architecture](docs/img/architecture.svg?v=2)
 
 Compression runs on the **phone/web app**, not on ESP32. The radio just moves bytes — it doesn't know or care about compression.
 
