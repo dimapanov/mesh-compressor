@@ -13,7 +13,6 @@ data/mqtt_collected/
 data/mqtt_export/
 
 # Unpacked data (regenerate with: python3 tools/unpack_data.py)
-data/datasets/*.jsonl
 data/multilingual/
 data/train.txt
 data/test.txt

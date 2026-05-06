@@ -1,10 +1,71 @@
 # Meshtastic Text Compression
 
-Fits **2-7x more text** into a single 233-byte Meshtastic packet. Lossless. 10 languages. Works in the browser, no server needed.
+Fits **2-7x more text** into a single 233-byte Meshtastic packet. Lossless. Works in the browser, no server needed.
 
 **[Try it online](https://dimapanov.github.io/mesh-compressor/)**
 
 ![Compression by language](docs/img/compression-by-language.png)
+
+## Current state — en+ru focused track
+
+The latest line of work narrows the model to **English + Russian only** (the two languages with real Meshtastic traffic) and adds a proper **text-channel API** that emits printable ASCII via base91. This is exactly what mobile apps need — Meshtastic text channels can't carry raw bytes, only UTF-8 strings.
+
+![Optimisation progress on en+ru](docs/img/progress-en-ru.png)
+
+| Stage | bin_bpc | txt_bpc | Notes |
+|---|---|---|---|
+| Original 10-lang model | 3.350 | — | universal model, ru weighted-bpc on en+ru subset |
+| en+ru only + tuning + emoji blocks | 3.350 | — | drop CJK/Hangul/Devanagari infra, add emoji blocks |
+| **+ length elision (1-byte header)** | **3.106** | — | EOF symbol terminates AC stream, drop explicit text-len. Bellard ts_sms idea #1. **−7.3%** |
+| **+ text-channel API** (`compress_text`) | 3.106 | **3.884** | base91-aware passthrough check, 1-char format/escape marker |
+| **+ AC trailing-zero strip** | 3.106 | **3.861** | drop padding bytes before base91; decoder reads 0 past EOF |
+
+**Final on 2091-message held-out test set (1151 en + 940 ru, real MQTT messages):**
+
+![Per-language results](docs/img/by-lang-en-ru.png)
+
+| Mode | Overall | English | Russian | Roundtrip |
+|---|---|---|---|---|
+| **Binary path** (`compress`/`decompress`) | **3.106 bpc** | 3.169 bpc — 62.6% saved | 3.030 bpc — 77.7% saved | 100% |
+| **Text-channel path** (`compress_text`/`decompress_text`) | **3.861 bpc** | 3.900 bpc — 54.0% saved | 3.814 bpc — 71.9% saved | 100% |
+
+The text-channel path is what gets shipped to phones today (e.g. [meshcore-open](https://github.com/HDDen/meshcore-open) uses an older fork of this codec with a `mcmp:` prefix + base91). Russian beats English on bytes-saved because UTF-8 spends 2 bytes per Cyrillic letter — so even at higher bpc we squeeze more bytes out of the same string.
+
+### What's in the public API
+
+```python
+from src.compress import (
+    train_model,
+    compress, decompress,                  # binary: bytes ↔ str
+    compress_text, decompress_text,        # base91 text-channel: str ↔ str
+    save_model, load_model, prune_model,   # zlib+pickle persistence, tunable
+)
+```
+
+`save_model(model, path, threshold=N)` lets you trade quality for bundle size:
+
+| threshold | size on disk | extra bpc cost |
+|---|---|---|
+| 1 (lossless) | ~22 MB | 0 |
+| 2 | 5.9 MB | +0.06 |
+| 3 | 3.6 MB | +0.11 |
+| 5 | 2.2 MB | +0.19 |
+
+### What was tried and rejected
+
+- **Static phrase dictionary** (Bellard ts_sms idea #5 — replace frequent n-grams with PUA tokens): every variant regressed bpc. Char-level n-grams can't model PUA tokens well; this idea is a net win only on top of a BPE tokenizer + LM.
+- **6-bits-per-base91-digit** packing: simpler than standard base91 (~6.51 bit/digit) but gives back the dropped 0.5 bit/digit. Reverted.
+- **Synthetic data augmentation** (URLs, profanity templates): always regressed weighted-bpc on real test set. Only real MQTT traffic helps.
+
+### Why this is the right ceiling for this architecture
+
+A char-level n-gram model with the orders this codec uses (up to 11) bottoms out around **2.7–2.9 bpc** on en+ru chat-style text, even with a perfect corpus of hundreds of thousands of messages. To go lower you need a small neural LM (RWKV-style) — the path Bellard's `ts_zip` takes, which is out of scope for embedded Meshtastic clients.
+
+---
+
+## Earlier multi-language work
+
+> **Historical / superseded by the en+ru track above.** The sections below describe the original 10-language universal model (still shipped via the web UI at `docs/model-universal-10lang.json`) and the autoresearch pipeline that produced it. Numbers, header format, language tables, optimisation phases and roadmap items in this part of the README reflect that earlier work — the live codec for production deployments is the en+ru track.
 
 ## How compression works — explained simply
 
@@ -207,32 +268,26 @@ Devices with keyboards (T-Deck, T-Pager) are the **primary targets** — that's 
 
 > **Tested on Heltec V3** (ESP32-S3FN8, 8 MB flash, no PSRAM) with a custom partition table and flash mmap. Compression/decompression works. C++ decoder is in a separate branch.
 
-### Proposed wire format
+### Wire format (en+ru track, current)
 
 ```
 Portnum: TEXT_MESSAGE_COMPRESSED_APP (7) — already exists in Meshtastic protobufs
 
-Three payload formats, auto-detected by the first byte:
+1-byte header, length elided via an EOF symbol in the AC stream:
 
-1. Passthrough (first byte ≠ 0x00):
-   [raw UTF-8 bytes]
-   Used for very short messages where AC doesn't help.
-   Decompressor detects by first byte ≠ 0x00 (valid UTF-8 never starts with null).
+  data[0] == 0x00  → compressed, no escapes
+  data[0] == 0x01  → compressed, with escape table
+  data[0] >= 0x02  → passthrough (raw UTF-8; valid UTF-8 never starts <0x02)
 
-2. Compressed, short (first byte = 0x00, second byte bit7 clear):
-   [0x00] [has_escapes_bit7 | text_len_7bits] [AC bitstream]
-   2-byte header for messages with text_len < 128 characters (~99% of messages).
-
-3. Compressed, long (first byte = 0x00, second byte bit7 set):
-   [0x00] [text_len_high] [flags] [AC bitstream]
-   3-byte header for messages with text_len ≥ 128 characters (rare).
+Decoder loops until it pulls the EOF symbol out of the arithmetic decoder,
+so there is no explicit text-length field.
 ```
 
 ### Two transport modes
 
 1. **Binary (portnum 7)** — raw compressed bytes in the packet payload. Maximum efficiency. Requires client app support.
 
-2. **Text (Base91)** — compressed bytes encoded as ASCII with `~` prefix, sent as regular `TEXT_MESSAGE_APP`. Works today without any changes — paste into any Meshtastic chat. Receiving side sees `~` prefix and decodes. ~23% overhead vs binary, but still much better than uncompressed.
+2. **Text-channel (base91)** — `compress_text` / `decompress_text` emit printable ASCII (1-char marker + base91 of the AC stream with trailing-pad stripped). Works today without any firmware change — paste into any Meshtastic text channel. Receiver detects the marker and decodes; otherwise it's just a regular text message. Roughly +0.75 bpc overhead vs the binary path.
 
 ### Backward compatibility
 
@@ -294,15 +349,15 @@ curl -X POST http://localhost:8766/api/encode \
   -H "Content-Type: application/json" \
   -d '{"text": "Привет, как дела?"}'
 
-# Decompress (hex)
+# Decompress (hex of the binary path)
 curl -X POST http://localhost:8766/api/decode \
   -H "Content-Type: application/json" \
-  -d '{"hex": "00110093f79430"}'
+  -d '{"hex": "00..."}'
 
-# Decompress (Base91)
+# Decompress base91 (text-channel path)
 curl -X POST http://localhost:8766/api/decode_b91 \
   -H "Content-Type: application/json" \
-  -d '{"text": "~;vv(I_YDD"}'
+  -d '{"text": "<marker><base91-payload>"}'
 ```
 
 ## Multilingual support
@@ -398,25 +453,27 @@ Full experiment logs: [results.tsv](tools/results.tsv)
 
 ```
 src/                            Core compression engine
-  compress.py                   Language model + arithmetic coder (THE file)
+  compress.py                   Language model + arithmetic coder + text-channel API
   base91.py                     Base91 encoder/decoder
 tools/                          CLI utilities
-  eval_all.py                   Unified JSONL-based evaluation harness
+  eval_all.py                   Unified JSONL-based evaluation harness (binary path)
+  eval_text.py                  Text-channel (base91) evaluation harness
   gen_charts.py                 Chart generator for README (matplotlib)
   export_model.py               Export model to JSON for web UI
   build_datasets.py             Build clean train/test JSONL from all sources
-  unpack_data.py                Unpack datasets.zip after cloning
-  results.tsv                   Experiment log (phase 1)
+  results.tsv                   Experiment log (earlier multi-language phase)
   mqtt/                         MQTT data collection
     download.py                 Download historical messages from Liam Cottle API
     collector.py                Real-time MQTT subscriber
+get_metric.py                   One-shot metric runner (bin_bpc + txt_bpc on test set)
 docs/                           Web UI (GitHub Pages)
   index.html                    Interface (RU/EN toggle)
   compress.js                   JS compression engine
-  model-universal-10lang.json   Universal model (10 languages, order=9)
+  model-universal-10lang.json   Universal model (earlier 10-language track)
   img/                          Charts (generated by tools/gen_charts.py)
-data/                           Training and test data
-  datasets.zip                  Single source of truth (train.jsonl + test.jsonl)
+data/datasets/                  Training and test data
+  train.jsonl                   Training corpus
+  test.jsonl                    Held-out test set (2091 en+ru real MQTT messages)
 server.py                       FastAPI server + API
 ```
 

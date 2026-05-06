@@ -27,6 +27,8 @@ import math
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from src import base91
+
 
 # ─── Special Symbols ────────────────────────────────────────
 BOS = "\x02"  # Beginning of sequence (context padding)
@@ -44,7 +46,7 @@ MASK = FULL - 1
 # ─── Model Configuration ───────────────────────────────────
 ORDER = 11  # n-gram order (context length)
 CDF_CACHE_MAX = 200000  # max entries in CDF cache
-SCRIPT_BOOST = 5  # epsilon multiplier for same-script characters
+SCRIPT_BOOST = 8  # epsilon multiplier for same-script characters
 ESC_PROB = 500  # base probability units for ESC symbol (out of CDF_SCALE=1M)
 
 
@@ -52,27 +54,24 @@ ESC_PROB = 500  # base probability units for ESC symbol (out of CDF_SCALE=1M)
 # Each block: (block_id, start, end, name)
 # Ordered by frequency of use in multilingual text
 _UNICODE_BLOCKS = [
-    (0, 0x4E00, 0x9FFF),  # CJK Unified Ideographs (20992 chars)
-    (1, 0xAC00, 0xD7AF),  # Hangul Syllables (11184 chars)
-    (2, 0x0900, 0x097F),  # Devanagari (128 chars)
-    (3, 0x0E00, 0x0E7F),  # Thai (128 chars)
-    (4, 0x0980, 0x09FF),  # Bengali (128 chars)
-    (5, 0x0600, 0x06FF),  # Arabic Extended (256 chars)
-    (6, 0x0400, 0x04FF),  # Cyrillic (256 chars)
-    (7, 0x0100, 0x024F),  # Latin Extended (336 chars)
-    (8, 0x3040, 0x309F),  # Hiragana (96 chars)
-    (9, 0x30A0, 0x30FF),  # Katakana (96 chars)
-    (10, 0x0B80, 0x0BFF),  # Tamil (128 chars)
-    (11, 0x10A0, 0x10FF),  # Georgian (96 chars)
-    (12, 0x0590, 0x05FF),  # Hebrew (112 chars)
-    (13, 0x0530, 0x058F),  # Armenian (96 chars)
-    (14, 0x3400, 0x4DBF),  # CJK Extension A (6592 chars)
+    (0, 0x0400, 0x04FF),  # Cyrillic (256 chars)
+    (1, 0x0100, 0x024F),  # Latin Extended (336 chars)
+    (2, 0x2000, 0x206F),  # General Punctuation
+    (3, 0x2190, 0x21FF),  # Arrows
+    (4, 0x2600, 0x27BF),  # Misc Symbols + Dingbats
+    (5, 0x1F300, 0x1F5FF),  # Misc Symbols and Pictographs (emoji)
+    (6, 0x1F600, 0x1F64F),  # Emoticons
+    (7, 0x1F900, 0x1F9FF),  # Supplemental Symbols and Pictographs
+    (8, 0xFE00, 0xFE0F),  # Variation Selectors
+    (9, 0x1FA70, 0x1FAFF),  # Symbols and Pictographs Extended-A
 ]
 _NUM_BLOCKS = len(_UNICODE_BLOCKS)
 _FALLBACK_BLOCK_ID = _NUM_BLOCKS  # for chars not in any block
 
 
-# ─── Top CJK Characters by Frequency ──────────────────────
+# ─── (CJK common-char table removed — en/ru only) ────────
+_CJK_COMMON = ""
+_DEAD_CJK = """
 # Top ~500 most frequent CJK characters (from general Chinese text corpora).
 # Used as sub-block for cheaper ESC encoding of common CJK chars.
 # These characters cover ~80% of typical Chinese text.
@@ -98,30 +97,12 @@ _CJK_COMMON = (
     "止福欢兴终师际备般斯际欢负观题武角坚费另丝黄"
     "类造待千严干考整杂买试护穿复底致微席黑官龙"
 )
-_CJK_COMMON_SET = set(_CJK_COMMON)
-_CJK_COMMON_MAP = {ch: i for i, ch in enumerate(_CJK_COMMON)}
-_CJK_COMMON_SIZE = len(_CJK_COMMON_MAP)
-# Block IDs for two-tier CJK: common (0) vs full-block (original ID 0)
-_CJK_COMMON_BLOCK_ID = _NUM_BLOCKS + 1  # new block ID for common CJK
-_TOTAL_BLOCK_IDS = _NUM_BLOCKS + 2  # blocks + fallback + CJK-common
+"""
+_TOTAL_BLOCK_IDS = _NUM_BLOCKS + 1  # blocks + fallback
 
 
 def _encode_codepoint(encoder, cp):
-    """Encode a Unicode codepoint using block-aware variable-length encoding.
-
-    Two-tier CJK: common CJK chars (top ~500) get a cheaper sub-block encoding.
-    block_id is uniform over _TOTAL_BLOCK_IDS choices.
-    """
-    # Check if it's a common CJK character first (cheapest path)
-    ch = chr(cp)
-    if ch in _CJK_COMMON_SET:
-        encoder.encode_symbol(
-            _CJK_COMMON_BLOCK_ID, _CJK_COMMON_BLOCK_ID + 1, _TOTAL_BLOCK_IDS
-        )
-        idx = _CJK_COMMON_MAP[ch]
-        encoder.encode_symbol(idx, idx + 1, _CJK_COMMON_SIZE)
-        return
-
+    """Encode a Unicode codepoint using block-aware variable-length encoding."""
     for block_id, start, end in _UNICODE_BLOCKS:
         if start <= cp <= end:
             # Encode block ID
@@ -140,16 +121,11 @@ def _encode_codepoint(encoder, cp):
 
 
 def _decode_codepoint(decoder):
-    """Decode a Unicode codepoint using block-aware encoding with two-tier CJK."""
+    """Decode a Unicode codepoint using block-aware encoding."""
     block_cdf = [(i, i, i + 1) for i in range(_TOTAL_BLOCK_IDS)]
     block_id = decoder.decode_symbol(block_cdf, total=_TOTAL_BLOCK_IDS)
 
-    if block_id == _CJK_COMMON_BLOCK_ID:
-        # Common CJK sub-block
-        idx_cdf = [(i, i, i + 1) for i in range(_CJK_COMMON_SIZE)]
-        idx = decoder.decode_symbol(idx_cdf, total=_CJK_COMMON_SIZE)
-        return ord(_CJK_COMMON[idx])
-    elif block_id < _NUM_BLOCKS:
+    if block_id < _NUM_BLOCKS:
         _, start, end = _UNICODE_BLOCKS[block_id]
         block_size = end - start + 1
         offset_cdf = [(i, i, i + 1) for i in range(block_size)]
@@ -165,86 +141,20 @@ def _decode_codepoint(decoder):
 
 
 def _char_script(ch):
-    """Classify a character into its Unicode script by codepoint ranges."""
+    """Classify a character: Latin / Cyrillic / Common / Other (en+ru only)."""
     cp = ord(ch)
-    # Common (digits, punctuation, space, symbols, control, emoji)
     if cp < 0x0041:
         return "Common"
-    # Basic Latin
-    if cp <= 0x024F:
+    if cp <= 0x024F or 0x1E00 <= cp <= 0x1EFF:
         return "Latin"
-    # Latin Extended Additional & beyond
-    if 0x1E00 <= cp <= 0x1EFF:
-        return "Latin"
-    # Cyrillic
-    if 0x0400 <= cp <= 0x04FF or 0x0500 <= cp <= 0x052F:
+    if 0x0400 <= cp <= 0x052F:
         return "Cyrillic"
-    # Arabic
-    if (
-        0x0600 <= cp <= 0x06FF
-        or 0x0750 <= cp <= 0x077F
-        or 0xFB50 <= cp <= 0xFDFF
-        or 0xFE70 <= cp <= 0xFEFF
-    ):
-        return "Arabic"
-    # Devanagari
-    if 0x0900 <= cp <= 0x097F:
-        return "Devanagari"
-    # Thai
-    if 0x0E00 <= cp <= 0x0E7F:
-        return "Thai"
-    # Georgian
-    if 0x10A0 <= cp <= 0x10FF:
-        return "Georgian"
-    # Hangul (Korean)
-    if 0xAC00 <= cp <= 0xD7AF or 0x1100 <= cp <= 0x11FF or 0x3130 <= cp <= 0x318F:
-        return "Hangul"
-    # CJK (Chinese/Japanese Kanji)
-    if (
-        0x4E00 <= cp <= 0x9FFF
-        or 0x3400 <= cp <= 0x4DBF
-        or 0x20000 <= cp <= 0x2A6DF
-        or 0xF900 <= cp <= 0xFAFF
-    ):
-        return "CJK"
-    # Hiragana
-    if 0x3040 <= cp <= 0x309F:
-        return "Hiragana"
-    # Katakana
-    if 0x30A0 <= cp <= 0x30FF:
-        return "Katakana"
-    # CJK Symbols/Punctuation (shared between ZH/JA/KO)
-    if 0x3000 <= cp <= 0x303F or 0xFF00 <= cp <= 0xFFEF:
-        return "CJK_Punct"
-    # Greek
-    if 0x0370 <= cp <= 0x03FF:
-        return "Greek"
-    # Hebrew
-    if 0x0590 <= cp <= 0x05FF:
-        return "Hebrew"
-    # Armenian
-    if 0x0530 <= cp <= 0x058F:
-        return "Armenian"
-    # Bengali
-    if 0x0980 <= cp <= 0x09FF:
-        return "Bengali"
-    # Tamil
-    if 0x0B80 <= cp <= 0x0BFF:
-        return "Tamil"
-    # Emoji and misc symbols
     if cp > 0xFFFF:
-        return "Common"
+        return "Common"  # emoji / supplementary
     return "Other"
 
 
-# Related script groups — scripts that commonly co-occur
-_SCRIPT_COMPAT = {
-    "CJK": {"CJK", "CJK_Punct", "Hiragana", "Katakana", "Common"},
-    "Hiragana": {"CJK", "CJK_Punct", "Hiragana", "Katakana", "Common"},
-    "Katakana": {"CJK", "CJK_Punct", "Hiragana", "Katakana", "Common"},
-    "CJK_Punct": {"CJK", "CJK_Punct", "Hiragana", "Katakana", "Common"},
-    "Hangul": {"Hangul", "CJK_Punct", "Common"},
-}
+_SCRIPT_COMPAT = {}
 
 
 # ═══════════════════════════════════════════════════════════
@@ -282,21 +192,11 @@ class NGramModel:
             padded = BOS * self.order + text + EOF
             charset.update(text)
 
-            # Detect if text is primarily CJK/Hangul — boost count weight
-            cjk_chars = sum(
-                1
-                for c in text
-                if 0x4E00 <= ord(c) <= 0x9FFF
-                or 0x3040 <= ord(c) <= 0x30FF  # Hiragana/Katakana
-                or 0xAC00 <= ord(c) <= 0xD7AF
-            )  # Hangul
-            weight = 3 if cjk_chars > len(text) * 0.05 else 1
-
             for i in range(self.order, len(padded)):
                 ch = padded[i]
                 for n in range(self.order + 1):
                     ctx = padded[i - n : i]
-                    raw_counts[n][ctx][ch] += weight
+                    raw_counts[n][ctx][ch] += 1
 
         # Convert to plain dicts and compute totals
         for n in range(self.order + 1):
@@ -320,23 +220,28 @@ class NGramModel:
             self._char_scripts[ch] = script
             self._script_indices[script].append(i)
 
-    def get_cdf(self, context):
+    def get_cdf(self, context, has_escapes=True):
         """
         CDF for arithmetic coder (cached).
         Returns: [(char, cum_low, cum_high), ...]
         Sum of all intervals = CDF_SCALE exactly.
-        """
-        if context in self._cdf_cache:
-            return self._cdf_cache[context]
 
-        cdf = self._compute_cdf(context)
+        When has_escapes=False, the ESC symbol is given zero probability mass,
+        so the ESC_PROB budget is redistributed to real characters. Both encoder
+        and decoder must agree on this flag (it's stored in the 1-byte header).
+        """
+        cache_key = (context, has_escapes)
+        if cache_key in self._cdf_cache:
+            return self._cdf_cache[cache_key]
+
+        cdf = self._compute_cdf(context, has_escapes)
 
         if len(self._cdf_cache) < CDF_CACHE_MAX:
-            self._cdf_cache[context] = cdf
+            self._cdf_cache[cache_key] = cdf
 
         return cdf
 
-    def _compute_cdf(self, context):
+    def _compute_cdf(self, context, has_escapes=True):
         """Compute CDF from scratch using interpolation smoothing.
 
         Uses script-aware epsilon: characters from the same Unicode script
@@ -358,22 +263,24 @@ class NGramModel:
                 if ctx_script_early and ctx_script_early != "Common":
                     break
 
-        # CJK/Hangul scripts have much sparser training data —
-        # require more counts before trusting high-order contexts
-        is_sparse_script = ctx_script_early in ("CJK", "Hiragana", "Katakana", "Hangul")
-        confidence_denom = (
-            (lambda n: n + 8.0) if is_sparse_script else (lambda n: n + 1.5)
-        )
-
+        max_match_order = -1
         for n in range(self.order, -1, -1):
             ctx = context[-n:] if n > 0 else ""
             t = self.totals[n].get(ctx, 0)
             if t > 0:
-                # Confidence: penalize low-count contexts (more aggressive for sparse scripts)
-                confidence = min(t / confidence_denom(n), 1.0)
+                confidence = t / (t + 1.5)
                 w = (n + 1) ** 3 * math.log1p(t) * confidence
                 active.append((n, ctx, t, w))
                 total_w += w
+                if n > max_match_order:
+                    max_match_order = n
+
+        # When only short-context matches are available, model is uncertain;
+        # boost the script-prior so mass goes to plausible characters.
+        if max_match_order <= 2:
+            script_boost = SCRIPT_BOOST * 4
+        else:
+            script_boost = SCRIPT_BOOST
 
         # Step 2: compute script-aware epsilon
         # Detect active script from context (last non-BOS characters)
@@ -398,12 +305,14 @@ class NGramModel:
         for i, ch in enumerate(vocab):
             ch_script = self._char_scripts.get(ch, "Other")
             if ch == ESC:
-                # ESC gets a fixed probability for inline unknown char encoding
-                eps = ESC_PROB
+                # ESC gets a fixed probability for inline unknown char encoding.
+                # When the message has no escapes (signalled in the header), we
+                # know ESC will never be encoded, so we don't waste mass on it.
+                eps = ESC_PROB if has_escapes else 0
             elif compat_scripts and ch_script in compat_scripts:
-                eps = SCRIPT_BOOST
+                eps = script_boost
             elif ch_script == "Common":
-                eps = SCRIPT_BOOST // 3
+                eps = max(1, script_boost // 3)
             else:
                 eps = 1
             freqs[i] = eps
@@ -532,6 +441,15 @@ class ArithmeticEncoder:
             result.append(byte)
         return bytes(result)
 
+    def finish_bits(self):
+        """Same as finish() but returns the raw bit list (no byte padding)."""
+        self.pending += 1
+        if self.low < QUARTER:
+            self._emit_bit(0)
+        else:
+            self._emit_bit(1)
+        return list(self.bits)
+
 
 # ═══════════════════════════════════════════════════════════
 # ARITHMETIC DECODER
@@ -610,6 +528,42 @@ def train_model(messages):
     return model
 
 
+def _compress_ac_bits(text, model):
+    """Same as _compress_ac, but returns (flags, bits) without byte padding.
+
+    `bits` is a list of 0/1 ints. Caller is responsible for serialization.
+    """
+    extra_chars = set(ch for ch in text if ch not in model._vocab_set)
+    has_extras = len(extra_chars) > 0
+    flags = 1 if has_extras else 0
+
+    encoder = ArithmeticEncoder()
+    context = BOS * model.order
+
+    for ch in text:
+        cdf = model.get_cdf(context, has_escapes=has_extras)
+        if ch in model._vocab_set:
+            for sym, cum_low, cum_high in cdf:
+                if sym == ch:
+                    encoder.encode_symbol(cum_low, cum_high, CDF_SCALE)
+                    break
+        else:
+            for sym, cum_low, cum_high in cdf:
+                if sym == ESC:
+                    encoder.encode_symbol(cum_low, cum_high, CDF_SCALE)
+                    break
+            _encode_codepoint(encoder, ord(ch))
+        context = (context + ch)[-model.order :]
+
+    cdf = model.get_cdf(context, has_escapes=has_extras)
+    for sym, cum_low, cum_high in cdf:
+        if sym == EOF:
+            encoder.encode_symbol(cum_low, cum_high, CDF_SCALE)
+            break
+
+    return flags, encoder.finish_bits()
+
+
 def _compress_ac(text, model):
     """
     Internal: compress text using arithmetic coding.
@@ -624,7 +578,7 @@ def _compress_ac(text, model):
 
     for ch in text:
         if ch in model._vocab_set:
-            cdf = model.get_cdf(context)
+            cdf = model.get_cdf(context, has_escapes=has_extras)
             found = False
             for sym, cum_low, cum_high in cdf:
                 if sym == ch:
@@ -636,7 +590,7 @@ def _compress_ac(text, model):
                     f"Character '{ch}' (U+{ord(ch):04X}) in vocab but not in CDF"
                 )
         else:
-            cdf = model.get_cdf(context)
+            cdf = model.get_cdf(context, has_escapes=has_extras)
             for sym, cum_low, cum_high in cdf:
                 if sym == ESC:
                     encoder.encode_symbol(cum_low, cum_high, CDF_SCALE)
@@ -645,25 +599,19 @@ def _compress_ac(text, model):
 
         context = (context + ch)[-model.order :]
 
-    cdf = model.get_cdf(context)
+    cdf = model.get_cdf(context, has_escapes=has_extras)
     for sym, cum_low, cum_high in cdf:
         if sym == EOF:
             encoder.encode_symbol(cum_low, cum_high, CDF_SCALE)
             break
 
     ac_bytes = encoder.finish()
-    text_len = len(text)
 
-    if text_len < 128:
-        # Compact 2-byte header: [0x00] [has_escapes_bit7 | text_len_7bits]
-        header = bytes([0x00, (flags << 7) | text_len])
-    else:
-        # Standard 3-byte header for longer texts: [uint16 text_len BE] [flags]
-        # Note: text_len >= 128 means high byte of uint16 could still be 0x00
-        # (text_len < 256), but byte[1] will have bit 7 set (text_len >= 128)
-        # so it won't be confused with compact format.
-        header = struct.pack(">HB", text_len, flags)
-    return header + ac_bytes
+    # 1-byte header. Length is implicit: decoder loops until EOF symbol.
+    #   data[0] == 0x00 → compressed, no escapes
+    #   data[0] == 0x01 → compressed, with escapes
+    #   data[0] >= 0x02 → passthrough (raw UTF-8)
+    return bytes([flags & 0x01]) + ac_bytes
 
 
 def compress(text, model):
@@ -671,35 +619,20 @@ def compress(text, model):
     Compress text using the trained model.
     Returns: bytes
 
-    Three output formats:
-    1. Empty:       b'\\x00\\x00' (2 bytes)
-    2. Passthrough: raw UTF-8 bytes (zero overhead)
-                    Used when AC output is larger than the raw UTF-8.
-                    Detected on decompress by first byte != 0x00.
-    3. Compressed:  [0x00] [text_len_low_byte] [flags] [AC bitstream]
-                    First byte is always 0x00 (text_len < 256 for Meshtastic).
-
-    Format discrimination on decompress:
-    - data[0] == 0x00 AND len >= 2: check data[0:2] as uint16 BE text_len.
-      If text_len == 0 → empty. Otherwise → compressed format.
-    - data[0] != 0x00: passthrough (raw UTF-8)
-
-    This works because real UTF-8 text never starts with 0x00 (null byte),
-    and Meshtastic text_len < 256 so the high byte is always 0x00.
+    Format (binary):
+      data[0] == 0x00 → compressed, no escapes
+      data[0] == 0x01 → compressed, with escapes
+      data[0] >= 0x02 → passthrough (raw UTF-8; real UTF-8 never starts <0x02)
     """
     if not text:
-        return b"\x00\x00"
+        return b""
 
     utf8_bytes = text.encode("utf-8")
-
-    # Try AC compression
     ac_result = _compress_ac(text, model)
 
-    # If AC result is larger than raw UTF-8, use passthrough (zero overhead)
-    if len(ac_result) > len(utf8_bytes):
+    if len(ac_result) > len(utf8_bytes) and utf8_bytes[0] >= 0x02:
         return utf8_bytes
-    else:
-        return ac_result
+    return ac_result
 
 
 def decompress(data, model):
@@ -714,133 +647,163 @@ def decompress(data, model):
       - v2 (flags 0 or 1): inline escape mode
     """
     if not data:
-        raise ValueError("Empty data")
-
-    # Passthrough detection: first byte is never 0x00 in valid UTF-8 text
-    if data[0] != 0x00:
-        return data.decode("utf-8")
-
-    # Compressed format: first byte is 0x00
-    if len(data) < 2:
-        raise ValueError("Data too short for compressed format")
-
-    if data[1] == 0x00:
-        # Empty string: [0x00, 0x00]
         return ""
 
-    # Check if compact or standard header
-    byte1 = data[1]
-    if byte1 & 0x80 == 0:
-        # Compact 2-byte header: [0x00] [0 | text_len_7bits] — no escapes
-        text_len = byte1 & 0x7F
-        has_escapes = False
-        ac_data = data[2:]
-    elif byte1 != 0xFF and byte1 >= 0x80:
-        # Could be compact header with escapes OR standard header
-        # Compact: [0x00] [1 | text_len_7bits] — has escapes
-        # Standard: [0x00] [text_len_low] [flags] — text_len >= 128
-        # Disambiguate: in compact mode, text_len = byte1 & 0x7F (1-127)
-        # In standard mode, this would be uint16 BE = byte1 (128-254 = len)
-        # Standard header text_len >= 128 means byte[0]=0, byte[1]>=128
-        # We need to distinguish: did the compressor use compact or standard?
-        # Decision: if text_len < 128, always compact. If >= 128, always standard.
-        # So if byte1 & 0x7F > 0, this is compact with escapes.
-        # If byte1 & 0x7F == 0 (byte1 == 0x80), this would be compact text_len=0,
-        # but text_len=0 is handled above. So byte1 in [0x81..0xFF) is compact.
-        compact_text_len = byte1 & 0x7F
-        if compact_text_len > 0 and len(data) >= 2:
-            # Compact header with escapes
-            text_len = compact_text_len
-            has_escapes = True
-            ac_data = data[2:]
-        else:
-            # Standard 3-byte header (text_len >= 128)
-            if len(data) < 3:
-                raise ValueError("Data too short for standard header")
-            text_len = struct.unpack(">H", data[:2])[0]
-            flags_or_nextra = data[2]
-            if flags_or_nextra > 1:
-                return _decompress_v1(data, model, text_len, flags_or_nextra)
-            elif flags_or_nextra == 1:
-                return _decompress_v2(data, model, text_len, has_escapes=True)
-            else:
-                return _decompress_v2(data, model, text_len, has_escapes=False)
+    # Format discrimination via first byte:
+    #   0x00 → compressed, no escapes
+    #   0x01 → compressed, with escapes
+    #   else → passthrough (raw UTF-8; valid UTF-8 text never starts with 0x00/0x01)
+    flags = data[0]
+    if flags > 0x01:
+        return data.decode("utf-8")
+
+    has_escapes = bool(flags & 1)
+    ac_data = data[1:]
+    if not ac_data:
+        return ""
+
+    decoder = ArithmeticDecoder(ac_data)
+    context = BOS * model.order
+    result = []
+
+    # Hard upper bound to prevent runaway in case of corrupted input.
+    # Meshtastic packets are <256 chars so 4096 is generous.
+    for _ in range(4096):
+        cdf = model.get_cdf(context, has_escapes=has_escapes)
+        ch = decoder.decode_symbol(cdf)
+        if ch == EOF:
+            break
+        elif ch == ESC and has_escapes:
+            cp = _decode_codepoint(decoder)
+            ch = chr(cp)
+        result.append(ch)
+        context = (context + ch)[-model.order :]
+
+    return "".join(result)
+
+
+# ═══════════════════════════════════════════════════════════
+# TEXT-CHANNEL API (Meshtastic text channels send printable ASCII)
+# ═══════════════════════════════════════════════════════════
+#
+# Wire format on text channels (e.g. LoRa text payload, base91-only):
+#   First base91 character signals the format:
+#     '!'        → empty message
+#     '"'        → compressed, no escapes      (base91 of AC bitstream)
+#     '#'        → compressed, with escapes    (base91 of AC bitstream)
+#     anything else → passthrough (rest of string is the raw text verbatim)
+#
+# `!`, `"`, `#` are the first three printable ASCII characters and
+# extremely rare as the first character of organic short messages
+# in en/ru. The passthrough path therefore stays zero-overhead for
+# the vast majority of messages.
+_TC_EMPTY = "!"
+_TC_COMPRESSED_NOESC = '"'
+_TC_COMPRESSED_ESC = "#"
+_TC_MARKERS = {_TC_EMPTY, _TC_COMPRESSED_NOESC, _TC_COMPRESSED_ESC}
+
+
+def _bits_to_min_bytes(bits):
+    """Pack MSB-first bit stream into bytes, dropping any trailing all-zero byte
+    that consists purely of finalisation padding. Decoder doesn't need those —
+    AC decoder's _read_bit returns 0 past the end."""
+    out = bytearray()
+    for i in range(0, len(bits), 8):
+        v = 0
+        for j in range(8):
+            v = (v << 1) | (bits[i + j] if i + j < len(bits) else 0)
+        out.append(v)
+    # Strip trailing zero bytes (they're just padding noise).
+    while len(out) > 0 and out[-1] == 0:
+        out.pop()
+    return bytes(out)
+
+
+def compress_text(text, model):
+    """Compress to a text-channel-safe printable-ASCII string.
+
+    Pipeline: AC bit stream → minimal bytes (drop trailing zero pad-bytes) →
+    base91 → 1-char format/escape marker prefix. Falls back to raw passthrough
+    if that's shorter than the encoded form.
+    """
+    if not text:
+        return _TC_EMPTY
+
+    flags, bits = _compress_ac_bits(text, model)
+    payload = _bits_to_min_bytes(bits)
+    marker = _TC_COMPRESSED_ESC if flags & 1 else _TC_COMPRESSED_NOESC
+    compressed_text = marker + base91.encode(payload)
+
+    if len(compressed_text) >= len(text) and text[0] not in _TC_MARKERS:
+        return text
+    return compressed_text
+
+
+def decompress_text(s, model):
+    """Inverse of compress_text."""
+    if not s:
+        return ""
+    head = s[0]
+    if head == _TC_EMPTY:
+        return ""
+    if head == _TC_COMPRESSED_NOESC:
+        flags = 0
+    elif head == _TC_COMPRESSED_ESC:
+        flags = 1
     else:
-        # byte1 == 0xFF shouldn't happen in normal use
-        raise ValueError(f"Unexpected byte[1] value: 0x{byte1:02X}")
+        return s  # passthrough
 
-    if not ac_data:
-        raise ValueError("No AC data after header")
-
-    decoder = ArithmeticDecoder(ac_data)
-    context = BOS * model.order
-    result = []
-
-    for _ in range(text_len + 1):
-        cdf = model.get_cdf(context)
-        ch = decoder.decode_symbol(cdf)
-        if ch == EOF:
-            break
-        elif ch == ESC and has_escapes:
-            cp = _decode_codepoint(decoder)
-            ch = chr(cp)
-        result.append(ch)
-        context = (context + ch)[-model.order :]
-
-    return "".join(result)
+    payload = base91.decode(s[1:])
+    return decompress(bytes([flags]) + payload, model)
 
 
-def _decompress_v1(data, model, text_len, n_extra):
-    """Decompress v1 format with extra chars in header."""
-    offset = 3
-    for _ in range(n_extra):
-        ch_len = data[offset]
-        offset += 1
-        ch = data[offset : offset + ch_len].decode("utf-8")
-        offset += ch_len
-        model.ensure_char(ch)
+# ═══════════════════════════════════════════════════════════
+# MODEL SERIALIZATION (compact, zlib-compressed pickle)
+# ═══════════════════════════════════════════════════════════
 
-    ac_data = data[offset:]
-    if not ac_data:
-        raise ValueError("No AC data after header")
-
-    decoder = ArithmeticDecoder(ac_data)
-    context = BOS * model.order
-    result = []
-
-    for _ in range(text_len + 1):  # +1 for EOF
-        cdf = model.get_cdf(context)
-        ch = decoder.decode_symbol(cdf)
-        if ch == EOF:
-            break
-        result.append(ch)
-        context = (context + ch)[-model.order :]
-
-    return "".join(result)
+import zlib as _zlib
 
 
-def _decompress_v2(data, model, text_len, has_escapes):
-    """Decompress v2 format with inline escape encoding."""
-    ac_data = data[3:]
-    if not ac_data:
-        raise ValueError("No AC data after header")
+def prune_model(model, threshold=2):
+    """Drop low-count contexts at order >= 3 to shrink the model.
 
-    decoder = ArithmeticDecoder(ac_data)
-    context = BOS * model.order
-    result = []
+    threshold=1 is a no-op. Higher thresholds trade bpc for size:
+      thr=2  → ~74% smaller, +0.06 bpc
+      thr=3  → ~84% smaller, +0.11 bpc
+      thr=5  → ~90% smaller, +0.19 bpc
 
-    for _ in range(text_len + 1):  # +1 for EOF
-        cdf = model.get_cdf(context)
-        ch = decoder.decode_symbol(cdf)
+    Returns the same model object (mutated).
+    """
+    if threshold <= 1:
+        return model
+    for n in range(3, model.order + 1):
+        for ctx in list(model.totals[n].keys()):
+            if model.totals[n][ctx] < threshold:
+                del model.counts[n][ctx]
+                del model.totals[n][ctx]
+    model._cdf_cache = {}
+    return model
 
-        if ch == EOF:
-            break
-        elif ch == ESC and has_escapes:
-            # Decode inline codepoint using block-aware encoding
-            cp = _decode_codepoint(decoder)
-            ch = chr(cp)
 
-        result.append(ch)
-        context = (context + ch)[-model.order :]
+def save_model(model, path, threshold=1, compress_level=9):
+    """Pickle + zlib + optional pruning. Format:
+        4 bytes magic 'NGM1' | zlib(pickle(model_dict))
+    """
+    import pickle as _pickle
+    if threshold > 1:
+        prune_model(model, threshold)
+    payload = _pickle.dumps(model, protocol=_pickle.HIGHEST_PROTOCOL)
+    blob = b"NGM1" + _zlib.compress(payload, compress_level)
+    with open(path, "wb") as f:
+        f.write(blob)
+    return len(blob)
 
-    return "".join(result)
+
+def load_model(path):
+    import pickle as _pickle
+    with open(path, "rb") as f:
+        blob = f.read()
+    if blob[:4] != b"NGM1":
+        # Legacy uncompressed pickle.
+        return _pickle.loads(blob)
+    return _pickle.loads(_zlib.decompress(blob[4:]))
