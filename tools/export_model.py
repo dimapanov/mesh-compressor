@@ -47,9 +47,16 @@ def main():
     )
     args = parser.parse_args()
 
-    train_path = Path(__file__).parent.parent / "data" / "train.txt"
+    import json
+    train_path = Path(__file__).parent.parent / "data" / "datasets" / "train.jsonl"
     print(f"Loading training data from {train_path}...")
-    msgs = [l.strip() for l in open(train_path, encoding="utf-8") if l.strip()]
+    msgs = []
+    with open(train_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                rec = json.loads(line)
+                msgs.append(rec["text"])
     print(f"  {len(msgs)} messages")
 
     print("Training model...")

@@ -181,7 +181,7 @@
       <p data-i18n="about1">Meshtastic transmits packets up to <strong>233 bytes</strong>. Cyrillic in UTF-8 uses 2 bytes per character — only ~116 characters per message. Compression fits 2-5× more text in a single packet.</p>
       <p data-i18n="about2"><strong>The language model</strong> (9-gram) is trained on 452K real and synthetic mesh messages in 10 languages (RU, EN, ES, DE, FR, PT, ZH, AR, JA, KO). It predicts the next character from up to 9 previous ones. The better the prediction — the fewer bits needed.</p>
       <p data-i18n="about3"><strong>Arithmetic coding</strong> encodes the entire text as a single fractional number using model probabilities. This achieves compression close to the theoretical limit — text entropy.</p>
-      <p data-i18n="about4"><strong>Two transport modes.</strong> Via <strong>text channel</strong> — compressed bytes are Base91-encoded (ASCII, ~23% overhead) with <code>~</code> prefix and pasted into any Meshtastic chat. Via <strong>binary channel</strong> — raw bytes sent directly through Meshtastic API (<code>/api/v1/toradio</code>), no overhead. Binary is more efficient.</p>
+      <p data-i18n="about4"><strong>Two transport modes.</strong> Via <strong>text channel</strong> — compressed bytes are Base91-encoded (ASCII) with a 1-char marker (<code>"</code>/<code>#</code>) and pasted into any Meshtastic chat. Via <strong>binary channel</strong> — raw bytes sent directly through Meshtastic API (<code>/api/v1/toradio</code>), no overhead. Binary is more efficient.</p>
     </div>
   </details>
 
@@ -275,8 +275,8 @@
       <!-- Decode -->
       <div class="section">
         <div class="section-label" data-i18n="decodeLabel">Decode</div>
-        <div class="section-hint" data-i18n="decodeHint">Paste a received message. String with <code style="font-family:var(--mono);font-size:.78rem;color:var(--accent);background:rgba(59,130,246,.08);padding:1px 5px;border-radius:3px">~</code> is Base91, without prefix — hex.</div>
-        <textarea class="dec-input" id="decInput" data-i18n-ph="decodePh" placeholder="~;vv(I_YDD or 00110093f79430"></textarea>
+        <div class="section-hint" data-i18n="decodeHint">Paste a received message. Strings starting with <code style="font-family:var(--mono);font-size:.78rem;color:var(--accent);background:rgba(59,130,246,.08);padding:1px 5px;border-radius:3px">"</code> or <code style="font-family:var(--mono);font-size:.78rem;color:var(--accent);background:rgba(59,130,246,.08);padding:1px 5px;border-radius:3px">#</code> are Base91 text-channel; pure hex is the binary path.</div>
+        <textarea class="dec-input" id="decInput" data-i18n-ph="decodePh" placeholder='"abc... or 00abcdef'></textarea>
         <div style="margin-top:8px;text-align:right">
           <button class="btn" id="decBtn">Decode</button>
         </div>
@@ -365,7 +365,7 @@ async function loadModel(filename) {
   }
 }
 
-loadModel('model-universal-10lang.json');
+loadModel('model-en-ru.json');
 
 function enc(){
   const text = inp.value;
@@ -386,8 +386,9 @@ function enc(){
     let rtOk = false;
     try { rtOk = decompress(compressed, model) === text; model.clearCache(); } catch(e) {}
 
-    // Base91
-    const b91str = '~' + b91encode(compressed);
+    // Text-channel (base91 + 1-char marker, may fall back to passthrough)
+    const b91str = compressText(text, model);
+    model.clearCache();
     const b91len = b91str.length;
     const b91ratio = (1 - b91len / utf8Bytes) * 100;
     const b91ok = b91len <= MX;
@@ -495,14 +496,15 @@ $('decBtn').onclick = ()=>{
   $('decOut').classList.remove('hidden');
 
   try {
-    let data;
-    if(val.startsWith('~')){
-      data = b91decode(val.slice(1));
-    } else {
+    let decoded;
+    const isHex = /^[0-9a-fA-F\s]+$/.test(val) && val.replace(/\s/g,'').length % 2 === 0;
+    if (isHex) {
       const hex = val.replace(/\s/g,'');
-      data = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+      const data = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+      decoded = decompress(data, model);
+    } else {
+      decoded = decompressText(val, model);
     }
-    const decoded = decompress(data, model);
     model.clearCache();
     $('decOut').textContent = decoded;
     $('decOut').className = 'dec-out';
@@ -524,14 +526,14 @@ const i18n = {
     about1: 'Meshtastic transmits packets up to <strong>233 bytes</strong>. Cyrillic in UTF-8 uses 2 bytes per character — only ~116 characters per message. Compression fits 2-5× more text in a single packet.',
     about2: '<strong>The language model</strong> (9-gram) is trained on 452K real and synthetic mesh messages in 10 languages (RU, EN, ES, DE, FR, PT, ZH, AR, JA, KO). It predicts the next character from up to 9 previous ones. The better the prediction — the fewer bits needed.',
     about3: '<strong>Arithmetic coding</strong> encodes the entire text as a single fractional number using model probabilities. This achieves compression close to the theoretical limit — text entropy.',
-    about4: '<strong>Two transport modes.</strong> Via <strong>text channel</strong> — compressed bytes are Base91-encoded (ASCII, ~23% overhead) with <code>~</code> prefix and pasted into any Meshtastic chat. Via <strong>binary channel</strong> — raw bytes sent directly through Meshtastic API (<code>/api/v1/toradio</code>), no overhead. Binary is more efficient.',
+    about4: '<strong>Two transport modes.</strong> Via <strong>text channel</strong> — compressed bytes are Base91-encoded (ASCII) with a 1-char marker (<code>"</code>/<code>#</code>) and pasted into any Meshtastic chat. Via <strong>binary channel</strong> — raw bytes sent directly through Meshtastic API (<code>/api/v1/toradio</code>), no overhead. Binary is more efficient.',
     encodeLabel: 'Encode', encodeHint: 'Type text — compression runs automatically. Copy the result and paste into Meshtastic chat.',
     inputPh: 'Type your message...',
     b91Hint: 'Copy and paste into any Meshtastic chat.',
     hexHint: 'Via Meshtastic API. More compact — no Base91 overhead.',
     decodeLabel: 'Decode',
-    decodeHint: 'Paste a received message. String with <code style="font-family:var(--mono);font-size:.78rem;color:var(--accent);background:rgba(59,130,246,.08);padding:1px 5px;border-radius:3px">~</code> is Base91, without prefix — hex.',
-    decodePh: '~;vv(I_YDD or 00110093f79430',
+    decodeHint: 'Paste a received message. Strings starting with <code style="font-family:var(--mono);font-size:.78rem;color:var(--accent);background:rgba(59,130,246,.08);padding:1px 5px;border-radius:3px">"</code> or <code style="font-family:var(--mono);font-size:.78rem;color:var(--accent);background:rgba(59,130,246,.08);padding:1px 5px;border-radius:3px">#</code> are Base91 text-channel; pure hex is the binary path.',
+    decodePh: '"abc... or 00abcdef',
     emptyState: 'Type text to compress',
     presets: [
       ['Hello, how are you?', 'Hello'],
@@ -547,14 +549,14 @@ const i18n = {
     about1: 'Meshtastic передаёт пакеты размером до <strong>233 байт</strong>. Кириллица в UTF-8 занимает 2 байта на символ — это всего ~116 символов на сообщение. Сжатие позволяет передавать в 2-5 раз больше текста в одном пакете.',
     about2: '<strong>Языковая модель</strong> (9-gram) обучена на 452K реальных и синтетических mesh-сообщений на 10 языках (RU, EN, ES, DE, FR, PT, ZH, AR, JA, KO). Она предсказывает следующий символ по контексту из 9 предыдущих. Чем точнее предсказание — тем меньше бит нужно.',
     about3: '<strong>Арифметическое кодирование</strong> кодирует весь текст как одно дробное число, используя вероятности из модели. Это даёт сжатие близкое к теоретическому пределу — энтропии текста.',
-    about4: '<strong>Два способа отправки.</strong> Через <strong>текстовый канал</strong> — сжатые байты кодируются в Base91 (ASCII, ~23% overhead) с префиксом <code>~</code> и вставляются в любой чат Meshtastic. Через <strong>бинарный канал</strong> — сырые байты через Meshtastic API (<code>/api/v1/toradio</code>), без overhead. Бинарный канал эффективнее.',
+    about4: '<strong>Два способа отправки.</strong> Через <strong>текстовый канал</strong> — сжатые байты кодируются в Base91 (ASCII) с 1-символьным маркером (<code>"</code>/<code>#</code>) и вставляются в любой чат Meshtastic. Через <strong>бинарный канал</strong> — сырые байты через Meshtastic API (<code>/api/v1/toradio</code>), без overhead. Бинарный канал эффективнее.',
     encodeLabel: 'Кодирование', encodeHint: 'Введите текст — сжатие происходит автоматически. Результат можно скопировать и вставить в чат Meshtastic.',
     inputPh: 'Введите сообщение...',
     b91Hint: 'Скопируйте и вставьте в любой чат Meshtastic.',
     hexHint: 'Через Meshtastic API. Компактнее — нет Base91 overhead.',
     decodeLabel: 'Декодирование',
-    decodeHint: 'Вставьте полученное сообщение. Строка с <code style="font-family:var(--mono);font-size:.78rem;color:var(--accent);background:rgba(59,130,246,.08);padding:1px 5px;border-radius:3px">~</code> — Base91, без префикса — hex.',
-    decodePh: '~;vv(I_YDD или 00110093f79430',
+    decodeHint: 'Вставьте полученное сообщение. Строки с <code style="font-family:var(--mono);font-size:.78rem;color:var(--accent);background:rgba(59,130,246,.08);padding:1px 5px;border-radius:3px">"</code> или <code style="font-family:var(--mono);font-size:.78rem;color:var(--accent);background:rgba(59,130,246,.08);padding:1px 5px;border-radius:3px">#</code> — Base91 текстовый канал; чистый hex — бинарный путь.',
+    decodePh: '"abc... или 00abcdef',
     emptyState: 'Введите текст для сжатия',
     presets: [
       ['Привет, как дела?', 'Привет'],
